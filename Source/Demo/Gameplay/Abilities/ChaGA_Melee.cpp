@@ -2,20 +2,24 @@
 
 #include "ChaGA_Melee.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Gameplay/Character/DemoCharacter.h"
 
 bool UChaGA_Melee::PlayFireMontage()
 {
-    if (!RoleSkillConfig || !RoleSkillConfig->FireMontage)
+    if (!RoleSkillConfig || !RoleSkillConfig->FireMontage || !OwnerCharacter)
+    {
+        return false;
+    }
+    
+    UCharacterMovementComponent* CharacterMovementComponent = OwnerCharacter->GetCharacterMovement();
+    if (!CharacterMovementComponent)
     {
         return false;
     }
 
-    // Build a seeded random stream and choose start section 1 or 2.
-    const int32 Seed = FMath::Rand();
-    FRandomStream RandomStream(Seed);
-    const int32 SectionValue = RandomStream.RandRange(1, 2);
-    const FName StartSection(*FString::FromInt(SectionValue));
-    
+    const bool bIsInFalling = CharacterMovementComponent->IsFalling();
+    const FName StartSection(*FString::FromInt(bIsInFalling ? 2 : 1));
     ActiveMontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, RoleSkillConfig->FireMontage, 1.0f, StartSection);
     if (!ActiveMontageTask)
     {

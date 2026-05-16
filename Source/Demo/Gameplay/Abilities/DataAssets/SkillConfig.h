@@ -18,9 +18,6 @@ class USkillConfig : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintReadOnly, Category = "Info")
-	int32 AbilityIndex = -1;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SummonItem")
 	TSubclassOf<ASummonItemBase> SummonItemClass;
 	

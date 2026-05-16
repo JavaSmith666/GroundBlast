@@ -20,6 +20,8 @@ class UArrowComponent;
 class UDemoCharacterGlobalConfig;
 class USphereComponent;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogDemoCharacter, Log, All);
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangeEvent, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMPChangeEvent, float);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStrengthChangeEvent, float);

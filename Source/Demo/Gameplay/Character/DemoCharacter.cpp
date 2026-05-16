@@ -26,6 +26,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/SphereComponent.h"
 
+DEFINE_LOG_CATEGORY(LogDemoCharacter);
 
 ADemoCharacter::ADemoCharacter()
 {
@@ -300,17 +301,17 @@ void ADemoCharacter::OnSkillConfigsLoaded()
 {
 	auto GrantAndBind = [&](const FSkillSlotEntry& Entry, int32 AbilityIndex) -> void
 	{
-		UClass* AbilityClass = Entry.AbilityClass.Get();
+		UClass* AbilityClass = Entry.AbilityClass.Get();		
 		if (AbilityClass && AbilitySystemComponent)
 		{
 			if (GetNetMode() < NM_Client)
 			{
 				FGameplayAbilitySpec Spec(AbilityClass, 1, INDEX_NONE, this);
+				Spec.InputID = AbilityIndex;
 				
 				// Use SourceObject to carry the config to the ability instances
 				if (USkillConfig* Config = Entry.SkillConfig.Get())
 				{
-					Config->AbilityIndex = AbilityIndex;
 					Spec.SourceObject = Config;
 				}
 				
@@ -327,15 +328,22 @@ void ADemoCharacter::OnSkillConfigsLoaded()
 					Binding.AbilityTags = Entry.AbilityTags;
 					Binding.ActivateAction = Action;
 					PendingBindings.Add(Binding);
-				}	
+				}
 			}
 		}
 	};
 	
+	UE_LOG(LogDemoCharacter, Log, TEXT("[ADemoCharacter::OnSkillConfigsLoaded] Authority: %d"), GetNetMode() < NM_Client);
+	UE_LOG(LogDemoCharacter, Log, TEXT("[ADemoCharacter::OnSkillConfigsLoaded] PendingSkillEntries.Num(): %d"), PendingSkillEntries.Num());
+	
 	GrantAndBind(PendingDefaultSkill, -1);
-	for (int32 i = 0; i < PendingSkillEntries.Num(); i++)
+	
+	if (!IsA<ADemoAICharacter>())
 	{
-		GrantAndBind(PendingSkillEntries[i], i);
+		for (int32 i = 0; i < PendingSkillEntries.Num(); i++)
+		{
+			GrantAndBind(PendingSkillEntries[i], i);
+		}	
 	}
 	
 	// Attempt binding immediately if InputComponent is already ready

@@ -8,6 +8,8 @@
 #include "Gameplay/AbilityActors/SummonItemBase.h"
 #include "Gameplay/Character/DemoCharacter.h"
 
+DEFINE_LOG_CATEGORY(LogDemoCharacterGameplayAbility);
+
 UDemoCharacterGameplayAbility::UDemoCharacterGameplayAbility()
 {
     InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
@@ -16,23 +18,29 @@ UDemoCharacterGameplayAbility::UDemoCharacterGameplayAbility()
 void UDemoCharacterGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
+    
+    AbilityIndex = Spec.InputID;
+    UE_LOG(LogDemoCharacterGameplayAbility, Log, TEXT("[UDemoCharacterGameplayAbility::OnGiveAbility] Authority: %d"), HasAuthority(&Spec.ActivationInfo));
+    UE_LOG(LogDemoCharacterGameplayAbility, Log, TEXT("[UDemoCharacterGameplayAbility::OnGiveAbility] AbilityIndex: %d"), AbilityIndex);
 
 	// Try to get SkillConfig from SourceObject if not already set
 	if (USkillConfig* Config = Cast<USkillConfig>(Spec.SourceObject))
 	{
 		RoleSkillConfig = Config;
-	    AbilityIndex = Config->AbilityIndex;
 	    if (ADemoCharacter* Character = Cast<ADemoCharacter>(ActorInfo->AvatarActor.Get()))
 	    {
 	        OwnerCharacter = Character;
 	        OwnerPlayerController = Cast<APlayerController>(OwnerCharacter->GetController());
-	        if (Character->bHasMainUICreated)
+	        if (OwnerCharacter->GetNetMode() != NM_DedicatedServer)
 	        {
-	            OnMainUICreated();
-	        }
-	        else
-	        {
-	            Character->OnMainUICreated.AddDynamic(this, &UDemoCharacterGameplayAbility::OnMainUICreated);
+	            if (Character->bHasMainUICreated)
+	            {
+	                OnMainUICreated();
+	            }
+	            else
+	            {
+	                Character->OnMainUICreated.AddDynamic(this, &UDemoCharacterGameplayAbility::OnMainUICreated);
+	            }   
 	        }
 	    }
 	}
@@ -167,6 +175,7 @@ void UDemoCharacterGameplayAbility::OnMainUICreated()
         float CD = 0.f;
         CooldownGE->DurationMagnitude.GetStaticMagnitudeIfPossible(1, CD);
         OwnerCharacter->InitSkillIcon(AbilityIndex, CD, RoleSkillConfig->AbilityMaterialInstance);
+        UE_LOG(LogDemoCharacterGameplayAbility, Log, TEXT("[UDemoCharacterGameplayAbility::OnMainUICreated] AbilityIndex: %d"), AbilityIndex);
     }
 }
 

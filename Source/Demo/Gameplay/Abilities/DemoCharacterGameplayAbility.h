@@ -12,6 +12,8 @@ class UAnimMontage;
 class UAbilityTask_PlayMontageAndWait;
 class ADemoCharacter;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogDemoCharacterGameplayAbility, Log, All);
+
 /**
  * Minimal gameplay ability for Demo characters.
  * This class is intentionally small — extend it with ability logic as needed.
