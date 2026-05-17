@@ -1,13 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Gameplay/AbilityActors//LaserActor.h"
 #include "Gameplay/Abilities/DemoAbilitySystemComponent.h"
 #include "AbilitySystemComponent.h"
 #include "Gameplay/Character/DemoCharacter.h"
 #include "GameplayEffect.h"
 #include "Components/ArrowComponent.h"
-#include "Net/UnrealNetwork.h"
 
 ALaserActor::ALaserActor()
 {
@@ -52,9 +50,7 @@ void ALaserActor::Tick(float DeltaTime)
 						}
 					}
 				}
-				
-				FVector Dir = (HitCharacter->GetActorLocation() - OwnerCharacter->GetActorLocation()).GetSafeNormal();
-				HitCharacter->PushAway(Dir, ForwardImpulse, ResetFrictionDelayTime);
+
 				return;
 			}
 		}

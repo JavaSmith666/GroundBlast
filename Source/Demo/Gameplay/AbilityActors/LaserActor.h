@@ -36,12 +36,6 @@ public:
 	UPROPERTY(Transient)
 	ADemoCharacter* CurrentHitCharacter = nullptr;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float ForwardImpulse = 200.f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float ResetFrictionDelayTime = 1.f;
-	
 protected:
 	
 	FActiveGameplayEffectHandle CurrentHitCharacterDamageEffectHandle;
