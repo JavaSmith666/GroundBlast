@@ -10,11 +10,13 @@ public class Demo : ModuleRules
 		OptimizeCode = CodeOptimization.Never;
 	
 		PublicDependencyModuleNames.AddRange(new string[] { 
-			"Core", 
-			"CoreUObject", 
-			"Engine", 
-			"InputCore", 
-			"EnhancedInput", 
+			"Core",
+			"CoreUObject",
+			"Engine",
+			"InputCore",
+			"Networking",
+			"Sockets",
+			"EnhancedInput",
 			"GameplayAbilities",
 			"GameplayTags",
 			"GameplayTasks",

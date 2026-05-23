@@ -48,7 +48,7 @@ struct FPendingAbilityBinding
 	FGameplayTagContainer AbilityTags;
 
 	UPROPERTY()
-	UInputAction* ActivateAction;
+	UInputAction* ActivateAction = nullptr;
 };
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);

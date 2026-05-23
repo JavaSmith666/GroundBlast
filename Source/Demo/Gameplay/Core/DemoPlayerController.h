@@ -18,6 +18,14 @@ class ADemoPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPossess(APawn* aPawn) override;
+	
+	virtual void SetOwner(AActor* NewOwner) override;
+	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerStartGameInRoom(const FString& InURL, bool bAbsolute, float LoadLevelDelay);
+	
 protected:
 
 	/** Input Mapping Contexts */
@@ -26,5 +34,4 @@ protected:
 
 	/** Input mapping context setup */
 	virtual void SetupInputComponent() override;
-
 };

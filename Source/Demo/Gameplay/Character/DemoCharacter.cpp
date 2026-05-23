@@ -179,7 +179,7 @@ void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedCo
 			}
 		}
 		
-		if (OtherCharacter->IsLocallyControlled() && OtherCharacter->GetTeamID() != ETeamID::Enemy)
+		if (OtherCharacter->GetTeamID() != ETeamID::Enemy)
 		{
 			OtherCharacter->Stun(1.f);
 		}
@@ -530,6 +530,11 @@ void ADemoCharacter::OnPushAwayDelayTimeReached()
 
 void ADemoCharacter::Stun(float Duration)
 {
+	if (!IsLocallyControlled())
+	{
+		return;
+	}
+	
 	if (GetNetMode() != NM_DedicatedServer)
 	{
 		if (APlayerController* PC = GetPlayerController())

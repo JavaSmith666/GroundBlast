@@ -1,10 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-
 #include "DemoPlayerController.h"
+#include "DemoGameInstance.h"
+#include "DemoGameState.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Gameplay/Character/DemoCharacter.h"
 
 void ADemoPlayerController::SetupInputComponent()
 {
@@ -22,4 +25,47 @@ void ADemoPlayerController::SetupInputComponent()
 			}
 		}
 	}
+}
+
+void ADemoPlayerController::OnPossess(APawn* aPawn)
+{
+	Super::OnPossess(aPawn);
+}
+
+void ADemoPlayerController::SetOwner(AActor* NewOwner)
+{
+	Super::SetOwner(NewOwner);
+}
+
+void ADemoPlayerController::ServerStartGameInRoom_Implementation(const FString& InURL, bool bAbsolute, float LoadLevelDelay)
+{
+	UE_LOG(LogNet, Warning, TEXT("=== ServerStartGameInRoom_Implementation CALLED on server ==="));
+	UE_LOG(LogNet, Warning, TEXT("    InURL: %s"), *InURL);
+	UE_LOG(LogNet, Warning, TEXT("    bAbsolute: %d"), bAbsolute);
+	UE_LOG(LogNet, Warning, TEXT("    LoadLevelDelay: %f"), LoadLevelDelay);
+	
+	if (UDemoGameInstance* GameInstance = Cast<UDemoGameInstance>(GetWorld()->GetGameInstance()))
+	{
+		GameInstance->AuthStartGameInRoom(InURL, bAbsolute, LoadLevelDelay);
+	}
+	
+	// 通知UI
+	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
+	{
+		DemoGameState->MultiNotifyGameStartedInRoom();
+	}
+	
+	// 开启重力
+	if (ADemoCharacter* DemoCharacter = Cast<ADemoCharacter>(GetOwner()))
+	{
+		if (UCharacterMovementComponent* CharacterMovementComponent = DemoCharacter->GetCharacterMovement())
+		{
+			CharacterMovementComponent->GravityScale = 1.f;
+		}
+	}
+}
+
+bool ADemoPlayerController::ServerStartGameInRoom_Validate(const FString& InURL, bool bAbsolute, float LoadLevelDelay)
+{
+	return true;
 }
