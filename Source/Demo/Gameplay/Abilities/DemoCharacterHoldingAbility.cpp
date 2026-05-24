@@ -91,6 +91,8 @@ bool UDemoCharacterHoldingAbility::OnDemoCharacterGameplayAbilityActivated(
 		SummonItem = GetWorld()->SpawnActor<ASummonItemBase>(RoleSkillConfig->SummonItemClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
 	}
 	
+	AddSkillIMC();
+	
 	return true;
 }
 
@@ -114,6 +116,8 @@ void UDemoCharacterHoldingAbility::PreDemoCharacterGameplayAbilityEnded(const FG
 	{
 		SummonItem->HiddenSelf();
 	}
+	
+	RemoveSkillIMC();
 	
 	Super::PreDemoCharacterGameplayAbilityEnded(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

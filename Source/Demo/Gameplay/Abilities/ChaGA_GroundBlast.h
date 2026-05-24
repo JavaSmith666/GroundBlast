@@ -13,18 +13,4 @@ UCLASS()
 class UChaGA_GroundBlast : public UDemoCharacterHoldingAbility
 {
 	GENERATED_BODY()
-	
-public:
-	virtual bool OnDemoCharacterGameplayAbilityActivated(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		const FGameplayEventData* TriggerEventData) override;
-	
-	virtual void PreDemoCharacterGameplayAbilityEnded(
-		const FGameplayAbilitySpecHandle Handle,
-		const FGameplayAbilityActorInfo* ActorInfo,
-		const FGameplayAbilityActivationInfo ActivationInfo,
-		bool bReplicateEndAbility,
-		bool bWasCancelled);
 };
