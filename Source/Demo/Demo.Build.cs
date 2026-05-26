@@ -21,10 +21,12 @@ public class Demo : ModuleRules
 			"GameplayTags",
 			"GameplayTasks",
 			"DeveloperSettings",
+			"UMG",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
+			"AIModule"
 		});
 		
 		PublicIncludePaths.AddRange(new string[] {

@@ -9,6 +9,7 @@ Build/
 Builds/
 Windows/
 WindowsServer/
+Plugins/
 .vs/
 *.VC.db
 *.VC.opendb

@@ -19,7 +19,7 @@
 #include "Gameplay/Abilities/DemoCharacterGameplayAbility.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
-#include "Gameplay/Abilities/DataAssets/DemoAbilitySettings.h"
+#include "Gameplay/Settings/DemoAbilitySettings.h"
 #include "Gameplay/Abilities/DataTables/CharacterSkillSlotsRow.h"
 #include "Gameplay/Abilities/DataAssets/SkillConfig.h"
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
@@ -67,6 +67,7 @@ ADemoCharacter::ADemoCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UDemoAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void ADemoCharacter::BeginPlay()
