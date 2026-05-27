@@ -4,7 +4,6 @@
 
 #include "DemoCharacterGlobalConfig.h"
 #include "DemoCharacterSettings.h"
-#include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -30,8 +29,6 @@ DEFINE_LOG_CATEGORY(LogDemoCharacter);
 
 ADemoCharacter::ADemoCharacter()
 {
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -44,14 +41,18 @@ ADemoCharacter::ADemoCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
-
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f;
-	CameraBoom->bUsePawnControlRotation = true;
 	
 	if (!IsA<ADemoAICharacter>())
 	{
+		CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+		CameraBoom->SetupAttachment(RootComponent);
+		CameraBoom->TargetArmLength = 400.0f;
+		CameraBoom->bUsePawnControlRotation = true;
+		
+		FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+		FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+		FollowCamera->bUsePawnControlRotation = false;
+		
 		LaserPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("LaserPoint"));
 		LaserPoint->SetupAttachment(RootComponent);
 		
@@ -62,12 +63,7 @@ ADemoCharacter::ADemoCharacter()
 	MeleeDamageCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MeleeDamageCapsule"));
 	MeleeDamageCapsule->SetupAttachment(GetMesh(), MeleeDamageCapsuleSocketName);
 
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = false;
-
 	AbilitySystemComponent = CreateDefaultSubobject<UDemoAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 }
 
 void ADemoCharacter::BeginPlay()
@@ -85,7 +81,7 @@ void ADemoCharacter::BeginPlay()
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMPAttribute()).AddUObject(this, &ADemoCharacter::OnMPAttributeChanged);
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetStrengthAttribute()).AddUObject(this, &ADemoCharacter::OnStrengthAttributeChanged);
 		
-		if (DemoCharacterGlobalConfig && DemoCharacterGlobalConfig->HealthRegenInfiniteEffect && TeamID != ETeamID::Enemy)
+		if (DemoCharacterGlobalConfig && DemoCharacterGlobalConfig->HealthRegenInfiniteEffect && !IsA<ADemoAICharacter>())
 		{
 			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DemoCharacterGlobalConfig->HealthRegenInfiniteEffect, 1.f, AbilitySystemComponent->MakeEffectContext());
 			HealthRegenInfiniteEffectSpecHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
@@ -180,7 +176,7 @@ void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedCo
 			}
 		}
 		
-		if (OtherCharacter->GetTeamID() != ETeamID::Enemy)
+		if (OtherCharacter->GetTeamID() != TeamID)
 		{
 			OtherCharacter->Stun(1.f);
 		}
@@ -271,7 +267,7 @@ void ADemoCharacter::MultiPlayMontage_Implementation(UAnimMontage* MontageToPlay
 		return;
 	}
 	
-	if (IsLocallyControlled() && TeamID != ETeamID::Enemy)
+	if (IsLocallyControlled())
 	{
 		return;
 	}
@@ -380,20 +376,23 @@ void ADemoCharacter::InitializeSkillDataFromDataTable()
 					PathsToLoad.Add(Row->DefaultSkill.ActivateAction.ToSoftObjectPath());
 				}
 				
-				for (auto& Entry : Row->SlotSkills)
+				if (TeamID != ETeamID::Enemy)
 				{
-					if (!Entry.AbilityClass.IsNull())
+					for (auto& Entry : Row->SlotSkills)
 					{
-						PathsToLoad.Add(Entry.AbilityClass.ToSoftObjectPath());
-					}
-					if (!Entry.SkillConfig.IsNull())
-					{
-						PathsToLoad.Add(Entry.SkillConfig.ToSoftObjectPath());
-					}
-					if (!Entry.ActivateAction.IsNull())
-					{
-						PathsToLoad.Add(Entry.ActivateAction.ToSoftObjectPath());
-					}
+						if (!Entry.AbilityClass.IsNull())
+						{
+							PathsToLoad.Add(Entry.AbilityClass.ToSoftObjectPath());
+						}
+						if (!Entry.SkillConfig.IsNull())
+						{
+							PathsToLoad.Add(Entry.SkillConfig.ToSoftObjectPath());
+						}
+						if (!Entry.ActivateAction.IsNull())
+						{
+							PathsToLoad.Add(Entry.ActivateAction.ToSoftObjectPath());
+						}
+					}	
 				}
 
 				if (PathsToLoad.Num() > 0)

@@ -28,7 +28,7 @@ public:
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
-	TSubclassOf<UBehaviorTree> BehaviorTreeClass = nullptr;
+	TSoftObjectPtr<UBehaviorTree> BehaviorTreeClass = nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UWidgetComponent* HPBar = nullptr;

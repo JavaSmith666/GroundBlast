@@ -31,7 +31,6 @@ DECLARE_DELEGATE(FOnSkillConfirmed)
 UENUM(BlueprintType)
 enum class ETeamID : uint8
 {
-	Neutral,
 	Player,
 	Enemy
 };
@@ -139,7 +138,7 @@ public:
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Team")
-	ETeamID TeamID = ETeamID::Neutral;
+	ETeamID TeamID = ETeamID::Player;
 	
 #pragma endregion Team
 	

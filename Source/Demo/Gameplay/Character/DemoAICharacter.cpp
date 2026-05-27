@@ -59,8 +59,10 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 	// 开启AI行为树
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
-		UBehaviorTree* BehaviorTree = BehaviorTreeClass ? BehaviorTreeClass->GetDefaultObject<UBehaviorTree>() : nullptr;
-		AIController->RunBehaviorTree(BehaviorTree);
+		if (UBehaviorTree* TempBehaviorTree = BehaviorTreeClass.IsNull() ? nullptr : BehaviorTreeClass.LoadSynchronous())
+		{
+			AIController->RunBehaviorTree(TempBehaviorTree);	
+		}
 	}
 	
 	bIsActive = true;
