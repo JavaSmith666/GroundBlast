@@ -1,13 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Gameplay/Character/DemoAICharacter.h"
+#include "DemoAICharacterGlobalConfig.h"
 #include "Gameplay/Abilities/DemoAbilitySystemComponent.h"
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Components/WidgetComponent.h"
+#include "Engine/AssetManager.h"
 #include "Net/UnrealNetwork.h"
+#include "Gameplay/Settings/DemoAICharacterSettings.h"
+#include "Gameplay/Abilities/DataAssets/SkillConfig.h"
 
 ADemoAICharacter::ADemoAICharacter()
 {
@@ -26,6 +29,8 @@ void ADemoAICharacter::BeginPlay()
 	{
 		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 	}
+	
+	InitializeAICharacterGlobalConfig();
 }
 
 void ADemoAICharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -33,6 +38,41 @@ void ADemoAICharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(ADemoAICharacter, bIsActive);
+}
+
+void ADemoAICharacter::CheckDeath(float InCurrentHP)
+{
+	if (!bIsDead && InCurrentHP <= 0.f && DemoCharacterGlobalConfig)
+	{
+		bIsDead = true;
+		
+		if (!DemoAICharacterGlobalConfig || !DemoAICharacterGlobalConfig->DeathMontage)
+		{
+			return;
+		}
+		
+		if (GetNetMode() != NM_DedicatedServer)
+		{
+			// 本地预测播放蒙太奇
+			if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+			{
+				AnimInst->Montage_Play(DemoAICharacterGlobalConfig->DeathMontage);
+			}
+		}
+		else
+		{
+			// 多播RPC让模拟端播蒙太奇
+			MultiPlayMontage(DemoAICharacterGlobalConfig->DeathMontage);	
+		}
+		
+		if (IsLocallyControlled())
+		{
+			if (APlayerController* PC = GetPlayerController())
+			{
+				PC->DisableInput(PC);
+			}
+		}
+	}
 }
 
 void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotation)
@@ -66,6 +106,7 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 	}
 	
 	bIsActive = true;
+	bIsDead = false;
 	if (GetNetMode() == NM_Standalone && HPBar)
 	{
 		HPBar->SetVisibility(bIsActive);
@@ -83,6 +124,7 @@ void ADemoAICharacter::Deactivate()
 	SetActorEnableCollision(false);
 	
 	bIsActive = false;
+	bIsDead = true;
 	if (GetNetMode() == NM_Standalone && HPBar)
 	{
 		HPBar->SetVisibility(bIsActive);
@@ -95,4 +137,36 @@ void ADemoAICharacter::OnRep_bIsActive()
 	{
 		HPBar->SetVisibility(bIsActive);
 	}
+}
+
+void ADemoAICharacter::OnAICharacterGlobalConfigLoaded()
+{
+	const UDemoAICharacterSettings* Settings = GetDefault<UDemoAICharacterSettings>();
+	if (!DemoAICharacterGlobalConfig && Settings && !Settings->AICharacterGlobalConfig.IsNull())
+	{
+		DemoAICharacterGlobalConfig = Settings->AICharacterGlobalConfig.Get();
+		TryGrantSkills();
+	}
+}
+
+void ADemoAICharacter::InitializeAICharacterGlobalConfig()
+{
+	const UDemoAICharacterSettings* Settings = GetDefault<UDemoAICharacterSettings>();
+	if (!DemoAICharacterGlobalConfig && Settings && !Settings->AICharacterGlobalConfig.IsNull())
+	{
+		UAssetManager::GetStreamableManager().RequestAsyncLoad(Settings->AICharacterGlobalConfig.ToSoftObjectPath(), 
+			FStreamableDelegate::CreateUObject(this, &ADemoAICharacter::OnAICharacterGlobalConfigLoaded));
+	}
+}
+
+void ADemoAICharacter::TryGrantSkills()
+{
+	if (!DemoAICharacterGlobalConfig || !AbilitySystemComponent)
+	{
+		return;
+	}
+	
+	FGameplayAbilitySpec Spec(DemoAICharacterGlobalConfig->AbilityClass, 1, INDEX_NONE, this);
+	Spec.SourceObject = DemoAICharacterGlobalConfig->SkillConfig.Get();
+	AbilitySystemComponent->GiveAbility(Spec);
 }

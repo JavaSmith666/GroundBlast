@@ -45,7 +45,7 @@ void UAnimInst_Shinbi::OnStartMontageNotify()
 		DamageCapsuleComponent->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	}
 	
-	FVector StartLocation = SkeletalMeshComp->GetBoneLocation(StartAttackBoneName);
+	FVector StartLocation = OwnerCharacter->GetActorLocation();
 	FVector OwnerCharacterForwardVector = OwnerCharacter->GetActorForwardVector();
 	FCollisionShape CollisionShape = FCollisionShape::MakeCapsule(AttackCapsuleRadius, AttackCapsuleHalfHeight);
 	TArray<FOverlapResult> OutOverlaps;

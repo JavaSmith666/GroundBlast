@@ -122,7 +122,7 @@ public:
 	bool IsDead() const { return bIsDead; }
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bIsDead = false;
 #pragma endregion State
 	
@@ -297,8 +297,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateStrengthAttributeBar();
 	
-	UFUNCTION(BlueprintCallable, Category="Attributes")
-	void CheckDeath(float InCurrentHP);
+	virtual void CheckDeath(float InCurrentHP);
 	
 private:
 	void OnHPAttributeChanged(const FOnAttributeChangeData& Data);

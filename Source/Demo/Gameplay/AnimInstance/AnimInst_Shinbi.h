@@ -42,9 +42,6 @@ protected:
 	bool bInAir = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	FName StartAttackBoneName = TEXT("");
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSoftClassPtr<UGameplayEffect> MeleeDamageEffect;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
@@ -52,10 +49,4 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	float AttackCapsuleHalfHeight  = 30.0f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	FName StartMontageName = TEXT("");
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	FName EndMontageName = TEXT("");
 };

@@ -3,7 +3,6 @@
 #include "DemoCharacter.h"
 
 #include "DemoCharacterGlobalConfig.h"
-#include "DemoCharacterSettings.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -24,6 +23,7 @@
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SphereComponent.h"
+#include "Gameplay/Settings/DemoCharacterSettings.h"
 
 DEFINE_LOG_CATEGORY(LogDemoCharacter);
 
@@ -76,15 +76,18 @@ void ADemoCharacter::BeginPlay()
 	{
 		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-		InitializeSkillDataFromDataTable();
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetHPAttribute()).AddUObject(this, &ADemoCharacter::OnHPAttributeChanged);
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetMPAttribute()).AddUObject(this, &ADemoCharacter::OnMPAttributeChanged);
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UBaseAttributeSet::GetStrengthAttribute()).AddUObject(this, &ADemoCharacter::OnStrengthAttributeChanged);
 		
-		if (DemoCharacterGlobalConfig && DemoCharacterGlobalConfig->HealthRegenInfiniteEffect && !IsA<ADemoAICharacter>())
+		if (!IsA<ADemoAICharacter>())
 		{
-			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DemoCharacterGlobalConfig->HealthRegenInfiniteEffect, 1.f, AbilitySystemComponent->MakeEffectContext());
-			HealthRegenInfiniteEffectSpecHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			InitializeSkillDataFromDataTable();
+			if (DemoCharacterGlobalConfig && DemoCharacterGlobalConfig->HealthRegenInfiniteEffect)
+			{
+				FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DemoCharacterGlobalConfig->HealthRegenInfiniteEffect, 1.f, AbilitySystemComponent->MakeEffectContext());
+				HealthRegenInfiniteEffectSpecHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}	
 		}
 	}
 	

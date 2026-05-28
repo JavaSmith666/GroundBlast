@@ -37,6 +37,14 @@ public:
 };
 
 UCLASS(BlueprintType)
+class UAIMeleeConfig : public USkillConfig
+{
+	GENERATED_BODY()
+
+public:
+};
+
+UCLASS(BlueprintType)
 class UHealthRegenConfig : public USkillConfig
 {
 	GENERATED_BODY()
