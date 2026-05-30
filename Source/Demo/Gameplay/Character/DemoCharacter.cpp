@@ -23,6 +23,7 @@
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Components/ArrowComponent.h"
 #include "Components/SphereComponent.h"
+#include "Gameplay/Core/DemoGameMode.h"
 #include "Gameplay/Settings/DemoCharacterSettings.h"
 
 DEFINE_LOG_CATEGORY(LogDemoCharacter);
@@ -446,6 +447,11 @@ void ADemoCharacter::CheckDeath(float InCurrentHP)
 	if (!bIsDead && InCurrentHP <= 0.f && DemoCharacterGlobalConfig)
 	{
 		bIsDead = true;
+		
+		if (ADemoGameModeRunning* DemoGameModeRunning = GetWorld()->GetAuthGameMode<ADemoGameModeRunning>())
+		{
+			DemoGameModeRunning->OnPlayerDead();
+		}
 		
 		if (GetNetMode() != NM_DedicatedServer)
 		{

@@ -3,6 +3,9 @@
 #include "DemoGameMode.h"
 #include "DemoGameInstance.h"
 #include "DemoGameState.h"
+#include "DemoPlayerState.h"
+#include "Engine/AssetManager.h"
+#include "Gameplay/Character/DemoCharacter.h"
 #include "Gameplay/Spawner/DemoAISpawner.h"
 #include "Gameplay/Subsystem/DemoGameInstanceSubsystem.h"
 
@@ -67,6 +70,7 @@ void ADemoGameModeRunning::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	
+	UE_LOG(LogDemoGameMode, Warning, TEXT("Player logged in. Current player count"), GetCurrentPlayerCount());
 	if (!bHasSomeOneLoggedIn)
 	{
 		bHasSomeOneLoggedIn = true;
@@ -90,6 +94,7 @@ void ADemoGameModeRunning::Logout(AController* Exiting)
 {
 	Super::Logout(Exiting);
 	
+	// 这里将PlayerArray的元素数减一，因为PlayerArray的更新比GameMode的Logout时机要晚
 	if (GetCurrentPlayerCount() <= 1)
 	{
 		ReturnRoomLevel();
@@ -104,9 +109,8 @@ int32 ADemoGameModeRunning::GetCurrentPlayerCount() const
 		return 0;
 	}
 	
-	// 这里将PlayerArray的元素数减一，因为PlayerArray的更新比GameMode的Logout时机要晚
-	UE_LOG(LogDemoGameMode, Warning, TEXT("Current Player Count: %d"), DemoGameState->PlayerArray.Num() - 1);
-	return DemoGameState->PlayerArray.Num() - 1;
+	UE_LOG(LogDemoGameMode, Warning, TEXT("Current Player Count: %d"), DemoGameState->PlayerArray.Num());
+	return DemoGameState->PlayerArray.Num();
 }
 
 void ADemoGameModeRunning::ReturnRoomLevel()
@@ -151,12 +155,75 @@ void ADemoGameModeRunning::StartNewRound()
 	GetWorld()->GetTimerManager().SetTimer(DelayShowRoundTextTimerHandle, this, &ADemoGameModeRunning::OnShowRoundTextTimerReached, DelayShowRoundTextTime, false);
 }
 
+void ADemoGameModeRunning::OnPlayerDefeatCountChanged()
+{
+	ADemoGameState* DemoGameState = GetWorld()->GetGameState<ADemoGameState>();
+	if (!DemoGameState)
+	{
+		return;
+	}
+	
+	// 按照击杀数进行排序
+	TArray<TObjectPtr<APlayerState>> TempPlayerArray = DemoGameState->PlayerArray;
+	TempPlayerArray.Sort([](const TObjectPtr<APlayerState>& A, const TObjectPtr<APlayerState>& B)
+	{
+		ADemoPlayerState* PlayerStateA = Cast<ADemoPlayerState>(A.Get());
+		ADemoPlayerState* PlayerStateB = Cast<ADemoPlayerState>(B.Get());
+		if (!PlayerStateA || !PlayerStateB)
+		{
+			return false;
+		}
+		
+		return PlayerStateA->GetDefeatCount() > PlayerStateB->GetDefeatCount();
+	});
+	
+	for (int32 i = 0; i < TempPlayerArray.Num(); ++i)
+	{
+		if (ADemoPlayerState* DemoPlayerState = Cast<ADemoPlayerState>(TempPlayerArray[i].Get()))
+		{
+			DemoPlayerState->SetRank(i + 1);
+		}
+	}
+}
+
+void ADemoGameModeRunning::OnPlayerDead()
+{
+	bool bHasSomeOneAlive = false;
+	ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState());
+	if (!DemoGameState)
+	{
+		return;
+	}
+	
+	for (auto PlayerState : DemoGameState->PlayerArray)
+	{
+		if (ADemoCharacter* DemoCharacter = PlayerState->GetPawn<ADemoCharacter>())
+		{
+			if (!DemoCharacter->IsDead())
+			{
+				bHasSomeOneAlive = true;
+				break;
+			}
+		}
+	}
+	
+	if (!bHasSomeOneAlive)
+	{
+		DemoGameState->MultiNotifyGameOver(false);
+	}
+}
+
 void ADemoGameModeRunning::OnShowRoundTextTimerReached()
 {
 	++CurrentRound;
 	int32* AICount = RoundIndexToAICountMap.Find(CurrentRound);
 	if (!AICount)
 	{
+		if (ADemoGameState* DemoGameState = GetWorld()->GetGameState<ADemoGameState>())
+		{
+			DemoGameState->MultiNotifyGameOver(true);
+		}
+		
 		return;
 	}
 	
@@ -175,6 +242,17 @@ void ADemoGameModeRunning::OnDelaySpawnAITimerReached(const int32 InAICount) con
 {
 	if (AISpawner)
 	{
-		AISpawner->SpawnSeveralAI(InAICount);
+		if (auto TempMesh = RoundIndexToAISkeletalMeshMap.Find(CurrentRound))
+		{
+			FSoftObjectPath TempMeshPath = (*TempMesh).ToSoftObjectPath();
+			UAssetManager::GetStreamableManager().RequestAsyncLoad(TempMeshPath, 
+				FStreamableDelegate::CreateWeakLambda(this, [this, InAICount, TempMeshPath]()
+				{
+					if (USkeletalMesh* TempSkeletalMesh = Cast<USkeletalMesh>(TempMeshPath.ResolveObject()))
+					{
+						AISpawner->SpawnSeveralAI(InAICount, TempSkeletalMesh);
+					}
+				}));
+		}
 	}
 }

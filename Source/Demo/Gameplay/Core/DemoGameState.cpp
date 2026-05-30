@@ -9,12 +9,12 @@ void ADemoGameState::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	bHasGameStartedInRoom = false;
+	bHasClientGameStartedInRoom = false;
 }
 
 void ADemoGameState::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	bHasGameStartedInRoom = false;
+	bHasClientGameStartedInRoom = false;
 	
 	Super::EndPlay(EndPlayReason);
 }
@@ -23,7 +23,6 @@ void ADemoGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME(ADemoGameState, bHasGameStartedInRoom);
 	DOREPLIFETIME(ADemoGameState, CurrentAICount);
 	DOREPLIFETIME(ADemoGameState, CurrentRoundIndex);
 }
@@ -48,12 +47,19 @@ void ADemoGameState::RemovePlayerState(APlayerState* PlayerState)
 	}
 }
 
-void ADemoGameState::SetHasGameStartedInRoom(bool bInHasGameStartedInRoom)
+void ADemoGameState::MultiNotifyGameStartedInRoom_Implementation()
 {
-	bHasGameStartedInRoom = bInHasGameStartedInRoom;
-	if (GetNetMode() == NM_Standalone && bHasGameStartedInRoom)
+	if (!bHasClientGameStartedInRoom && GetNetMode() != NM_DedicatedServer)
 	{
 		OnGameStartedInRoom.Broadcast();
+	}
+}
+
+void ADemoGameState::MultiNotifyGameOver_Implementation(bool bVictory)
+{
+	if (GetNetMode() != NM_DedicatedServer)
+	{
+		OnGameOver.Broadcast(bVictory);
 	}
 }
 
@@ -91,11 +97,6 @@ void ADemoGameState::SetCurrentRoundIndex(int32 InCurrentRoundIndex)
 	{
 		OnCurrentRoundIndexChanged.Broadcast(CurrentRoundIndex);
 	}
-}
-
-void ADemoGameState::OnRep_BHasGameStartedInRoom() const
-{
-	OnGameStartedInRoom.Broadcast();
 }
 
 void ADemoGameState::OnRep_CountDownEndTimeStamp() const

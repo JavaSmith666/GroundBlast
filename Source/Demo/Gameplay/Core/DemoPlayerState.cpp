@@ -3,9 +3,22 @@
 
 #include "Gameplay/Core/DemoPlayerState.h"
 
+#include "DemoGameMode.h"
 #include "DemoGameState.h"
 #include "Net/UnrealNetwork.h"
 
+void ADemoPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (GetNetMode() < NM_Client)
+	{
+		if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
+		{
+			Rank = DemoGameState->PlayerArray.Num();
+		}
+	}
+}
 
 void ADemoPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -16,7 +29,18 @@ void ADemoPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void ADemoPlayerState::OnEnemyDefeated()
 {
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	
 	++DefeatCount;
+	
+	if (ADemoGameModeRunning* DemoGameModeRunning = GetWorld()->GetAuthGameMode<ADemoGameModeRunning>())
+	{
+		DemoGameModeRunning->OnPlayerDefeatCountChanged();
+	}
+	
 	if (GetNetMode() == NM_Standalone)
 	{
 		if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))

@@ -56,7 +56,7 @@ void ADemoPlayerController::ServerStartGameInRoom_Implementation(const FString& 
 	// 通知UI
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
-		DemoGameState->SetHasGameStartedInRoom(true);
+		DemoGameState->MultiNotifyGameStartedInRoom();
 	}
 }
 

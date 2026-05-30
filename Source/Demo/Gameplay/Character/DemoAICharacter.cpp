@@ -6,7 +6,6 @@
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/AssetManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -116,6 +115,14 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 		}
 	}
 	
+	// 开启Movement
+	if (UCharacterMovementComponent* TempCharacterMovementComponent = GetCharacterMovement())
+	{
+		TempCharacterMovementComponent->SetActive(true);
+		TempCharacterMovementComponent->SetMovementMode(MOVE_Walking);
+		TempCharacterMovementComponent->SetComponentTickEnabled(true);
+	}
+	
 	// 开启AI行为树
 	AAIController* AIController = Cast<AAIController>(GetController());
 	if (!AIController)
@@ -150,6 +157,15 @@ void ADemoAICharacter::Deactivate()
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 	SetActorTickEnabled(false);
+	
+	// 关闭Movement
+	if (UCharacterMovementComponent* TempCharacterMovementComponent = GetCharacterMovement())
+	{
+		TempCharacterMovementComponent->SetMovementMode(MOVE_None);
+		TempCharacterMovementComponent->StopMovementImmediately();
+		TempCharacterMovementComponent->SetComponentTickEnabled(false);
+		TempCharacterMovementComponent->SetActive(false);
+	}
 	
 	// 关闭AI行为树
 	if (AAIController* AIController = Cast<AAIController>(GetController()))

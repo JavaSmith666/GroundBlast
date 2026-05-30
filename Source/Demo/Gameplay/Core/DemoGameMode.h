@@ -45,6 +45,8 @@ public:
 	virtual void Logout(AController* Exiting) override;
 	
 	void StartNewRound();
+	void OnPlayerDefeatCountChanged();
+	void OnPlayerDead();
 	
 protected:
 	UPROPERTY(EditAnywhere, Category = "RoomLevel")
@@ -70,6 +72,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TMap<int32, int32> RoundIndexToAICountMap;
+	
+	UPROPERTY(EditAnywhere, Category = "Spawner")
+	TMap<int32, TSoftObjectPtr<USkeletalMesh>> RoundIndexToAISkeletalMeshMap;
 	
 	bool bHasSomeOneLoggedIn = false;
 	FTimerHandle DelayStartCountDownTimerHandle;

@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerListChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStartedInRoom);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameOver, bool, bVictory);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNotifyCountDownLeftTime, int32, CountDownLeftTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentAICountChanged, int32, CurrentAICount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentDefeatCountChanged, int32, CurrentDefeatCount);
@@ -26,25 +27,16 @@ public:
 	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > &OutLifetimeProps) const override;
 	
-	UPROPERTY(BlueprintAssignable)
-	FOnPlayerListChanged OnPlayerListChanged;
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiNotifyGameStartedInRoom();
 	
-	UPROPERTY(BlueprintAssignable)
-	FOnGameStartedInRoom OnGameStartedInRoom;
-	
-	UPROPERTY(BlueprintAssignable)
-	FOnNotifyCountDownLeftTime OnNotifyCountDownLeftTime;
-	
-	UPROPERTY(BlueprintAssignable)
-	FOnCurrentAICountChanged OnCurrentAICountChanged;
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiNotifyGameOver(bool bVictory);
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnCurrentDefeatCountChanged OnCurrentDefeatCountChanged;
 	
-	UPROPERTY(BlueprintAssignable)
-	FOnCurrentRoundIndexChanged OnCurrentRoundIndexChanged;
-	
-	void SetHasGameStartedInRoom(bool bInHasGameStartedInRoom);
+	void SetHasGameStartedInRoom(bool bInHasClientGameStartedInRoom) { bHasClientGameStartedInRoom = bInHasClientGameStartedInRoom; }
 	void SetCountDownEndTimeStamp(int64 InCountDownEndTimeStamp);
 	void SetCurrentAICount(int32 InCurrentAICount);
 	void SetCurrentRoundIndex(int32 InCurrentRoundIndex);
@@ -56,9 +48,6 @@ protected:
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	UFUNCTION()
-	void OnRep_BHasGameStartedInRoom() const;
-	
-	UFUNCTION()
 	void OnRep_CountDownEndTimeStamp() const;
 	
 	UFUNCTION()
@@ -68,8 +57,25 @@ protected:
 	void OnRep_CurrentRoundIndex() const;
 	
 protected:
-	UPROPERTY(ReplicatedUsing=OnRep_BHasGameStartedInRoom)
-	bool bHasGameStartedInRoom = false;
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerListChanged OnPlayerListChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnGameStartedInRoom OnGameStartedInRoom;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnGameOver OnGameOver;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnNotifyCountDownLeftTime OnNotifyCountDownLeftTime;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnCurrentAICountChanged OnCurrentAICountChanged;
+	
+	UPROPERTY(BlueprintAssignable)
+	FOnCurrentRoundIndexChanged OnCurrentRoundIndexChanged;
+	
+	bool bHasClientGameStartedInRoom = false;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_CountDownEndTimeStamp)
 	int64 CountDownEndTimeStamp = 0;
