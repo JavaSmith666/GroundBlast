@@ -155,7 +155,7 @@ void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedCo
 	DashOverlapActors.Add(OtherActor);
 	if (ADemoCharacter* OtherCharacter = Cast<ADemoCharacter>(OtherActor))
 	{
-		if (TeamID == OtherCharacter->GetTeamID())
+		if (TeamID == OtherCharacter->GetTeamID() || OtherCharacter->bIsDead)
 		{
 			return;
 		}
@@ -165,7 +165,9 @@ void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedCo
 			OtherCharacter->MultiPlayMontage(DemoCharacterGlobalConfig->StunMontage);
 			if (UDemoAbilitySystemComponent* OtherASC = OtherCharacter->GetAbilitySystemComponent())
 			{
-				FGameplayEffectSpecHandle SpecHandle = OtherASC->MakeOutgoingSpec(DemoCharacterGlobalConfig->DashDamageEffect, 1.f, OtherASC->MakeEffectContext());
+				FGameplayEffectContextHandle ContextHandle = OtherASC->MakeEffectContext();
+				ContextHandle.AddInstigator(this, this);
+				FGameplayEffectSpecHandle SpecHandle = OtherASC->MakeOutgoingSpec(DemoCharacterGlobalConfig->DashDamageEffect, 1.f, ContextHandle);
 				OtherASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				FVector Direction = (OtherCharacter->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 				OtherCharacter->PushAway(Direction, DemoCharacterGlobalConfig->DashImpulse, 1.f);

@@ -299,7 +299,7 @@ public:
 	
 	virtual void CheckDeath(float InCurrentHP);
 	
-private:
+protected:
 	void OnHPAttributeChanged(const FOnAttributeChangeData& Data);
 	void OnMPAttributeChanged(const FOnAttributeChangeData& Data);
 	void OnStrengthAttributeChanged(const FOnAttributeChangeData& Data);

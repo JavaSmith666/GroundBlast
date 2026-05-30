@@ -56,16 +56,7 @@ void ADemoPlayerController::ServerStartGameInRoom_Implementation(const FString& 
 	// 通知UI
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
-		DemoGameState->MultiNotifyGameStartedInRoom();
-	}
-	
-	// 开启重力
-	if (ADemoCharacter* DemoCharacter = Cast<ADemoCharacter>(GetOwner()))
-	{
-		if (UCharacterMovementComponent* CharacterMovementComponent = DemoCharacter->GetCharacterMovement())
-		{
-			CharacterMovementComponent->GravityScale = 1.f;
-		}
+		DemoGameState->SetHasGameStartedInRoom(true);
 	}
 }
 

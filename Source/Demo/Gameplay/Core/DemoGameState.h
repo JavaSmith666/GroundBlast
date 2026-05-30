@@ -8,10 +8,10 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerListChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStartedInRoom);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnNotifyShowCountDownText);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnNotifyStartNewRound, int32, RoundIndex, int32, AICount);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNotifyCurrentAICountChanged, int32, CurrentAICount);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNotifyDefeatCountChanged, int32, DefeatCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNotifyCountDownLeftTime, int32, CountDownLeftTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentAICountChanged, int32, CurrentAICount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentDefeatCountChanged, int32, CurrentDefeatCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentRoundIndexChanged, int32, CurrentDefeatCount);
 
 /**
  * 
@@ -33,38 +33,50 @@ public:
 	FOnGameStartedInRoom OnGameStartedInRoom;
 	
 	UPROPERTY(BlueprintAssignable)
-	FOnNotifyShowCountDownText OnNotifyShowCountDownText;
+	FOnNotifyCountDownLeftTime OnNotifyCountDownLeftTime;
 	
 	UPROPERTY(BlueprintAssignable)
-	FOnNotifyStartNewRound OnNotifyStartNewRound;
+	FOnCurrentAICountChanged OnCurrentAICountChanged;
 	
 	UPROPERTY(BlueprintAssignable)
-	FOnNotifyCurrentAICountChanged OnNotifyCurrentAICountChanged;
+	FOnCurrentDefeatCountChanged OnCurrentDefeatCountChanged;
 	
 	UPROPERTY(BlueprintAssignable)
-	FOnNotifyDefeatCountChanged OnNotifyDefeatCountChanged;
+	FOnCurrentRoundIndexChanged OnCurrentRoundIndexChanged;
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiNotifyGameStartedInRoom();
+	void SetHasGameStartedInRoom(bool bInHasGameStartedInRoom);
+	void SetCountDownEndTimeStamp(int64 InCountDownEndTimeStamp);
+	void SetCurrentAICount(int32 InCurrentAICount);
+	void SetCurrentRoundIndex(int32 InCurrentRoundIndex);
 	
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiNotifyStartCountDownText();
-	
-	UFUNCTION(NetMulticast, Reliable)
-	void MultiNotifyStartNewRound(int32 RoundIndex, int32 AICount);
-	
-	void SetHasGameStartedInRoom(bool bInHasGameStartedInRoom) { bHasGameStartedInRoom = bInHasGameStartedInRoom; }
+	int32 GetCurrentAICount() const { return CurrentAICount; }
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	
 	UFUNCTION()
-	void OnRep_CurrentAICount();
+	void OnRep_BHasGameStartedInRoom() const;
+	
+	UFUNCTION()
+	void OnRep_CountDownEndTimeStamp() const;
+	
+	UFUNCTION()
+	void OnRep_CurrentAICount() const;
+	
+	UFUNCTION()
+	void OnRep_CurrentRoundIndex() const;
 	
 protected:
+	UPROPERTY(ReplicatedUsing=OnRep_BHasGameStartedInRoom)
 	bool bHasGameStartedInRoom = false;
 	
-	UPROPERTY(ReplicatedUsing=OnRep_CurrentAICount)
+	UPROPERTY(ReplicatedUsing=OnRep_CountDownEndTimeStamp)
+	int64 CountDownEndTimeStamp = 0;
+	
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_CurrentAICount)
 	int32 CurrentAICount = 0;
+	
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_CurrentRoundIndex)
+	int32 CurrentRoundIndex = 0;
 };

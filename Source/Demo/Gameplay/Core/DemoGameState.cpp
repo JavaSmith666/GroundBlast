@@ -2,6 +2,7 @@
 
 #include "Gameplay/Core/DemoGameState.h"
 
+#include "DemoGameMode.h"
 #include "Net/UnrealNetwork.h"
 
 void ADemoGameState::BeginPlay()
@@ -22,7 +23,9 @@ void ADemoGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
+	DOREPLIFETIME(ADemoGameState, bHasGameStartedInRoom);
 	DOREPLIFETIME(ADemoGameState, CurrentAICount);
+	DOREPLIFETIME(ADemoGameState, CurrentRoundIndex);
 }
 
 void ADemoGameState::AddPlayerState(APlayerState* PlayerState)
@@ -45,36 +48,68 @@ void ADemoGameState::RemovePlayerState(APlayerState* PlayerState)
 	}
 }
 
-void ADemoGameState::MultiNotifyGameStartedInRoom_Implementation()
+void ADemoGameState::SetHasGameStartedInRoom(bool bInHasGameStartedInRoom)
 {
-	if (!bHasGameStartedInRoom && GetNetMode() != NM_DedicatedServer)
+	bHasGameStartedInRoom = bInHasGameStartedInRoom;
+	if (GetNetMode() == NM_Standalone && bHasGameStartedInRoom)
 	{
-		OnGameStartedInRoom.Broadcast();	
+		OnGameStartedInRoom.Broadcast();
 	}
 }
 
-void ADemoGameState::MultiNotifyStartCountDownText_Implementation()
+void ADemoGameState::SetCountDownEndTimeStamp(int64 InCountDownEndTimeStamp)
 {
-	if (GetNetMode() != NM_DedicatedServer)
+	CountDownEndTimeStamp = InCountDownEndTimeStamp;
+	if (GetNetMode() == NM_Standalone)
 	{
-		OnNotifyShowCountDownText.Broadcast();	
+		const int32 LeftTime = InCountDownEndTimeStamp - FDateTime::UtcNow().ToUnixTimestamp();
+		OnNotifyCountDownLeftTime.Broadcast(LeftTime > 0 ? LeftTime : 0);
 	}
 }
 
-void ADemoGameState::MultiNotifyStartNewRound_Implementation(int32 RoundIndex, int32 AICount)
+void ADemoGameState::SetCurrentAICount(int32 InCurrentAICount)
 {
-	if (GetNetMode() != NM_DedicatedServer)
+	CurrentAICount = InCurrentAICount;
+	if (GetNetMode() == NM_Standalone)
 	{
-		OnNotifyStartNewRound.Broadcast(RoundIndex, AICount);
+		OnCurrentAICountChanged.Broadcast(CurrentAICount);
 	}
 	
-	if (GetNetMode() < NM_Client)
+	if (CurrentAICount == 0)
 	{
-		CurrentAICount = AICount;
+		if (ADemoGameModeRunning* DemoGameMode = GetWorld()->GetAuthGameMode<ADemoGameModeRunning>())
+		{
+			DemoGameMode->StartNewRound();
+		}	
 	}
 }
 
-void ADemoGameState::OnRep_CurrentAICount()
+void ADemoGameState::SetCurrentRoundIndex(int32 InCurrentRoundIndex)
 {
-	OnNotifyCurrentAICountChanged.Broadcast(CurrentAICount);
+	CurrentRoundIndex = InCurrentRoundIndex;
+	if (GetNetMode() == NM_Standalone)
+	{
+		OnCurrentRoundIndexChanged.Broadcast(CurrentRoundIndex);
+	}
+}
+
+void ADemoGameState::OnRep_BHasGameStartedInRoom() const
+{
+	OnGameStartedInRoom.Broadcast();
+}
+
+void ADemoGameState::OnRep_CountDownEndTimeStamp() const
+{
+	const int32 LeftTime = CountDownEndTimeStamp - FDateTime::UtcNow().ToUnixTimestamp();
+	OnNotifyCountDownLeftTime.Broadcast(LeftTime > 0 ? LeftTime : 0);
+}
+
+void ADemoGameState::OnRep_CurrentAICount() const
+{
+	OnCurrentAICountChanged.Broadcast(CurrentAICount);
+}
+
+void ADemoGameState::OnRep_CurrentRoundIndex() const
+{
+	OnCurrentRoundIndexChanged.Broadcast(CurrentRoundIndex);
 }

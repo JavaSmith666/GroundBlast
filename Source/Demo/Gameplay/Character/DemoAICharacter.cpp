@@ -6,16 +6,18 @@
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/AssetManager.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Gameplay/Settings/DemoAICharacterSettings.h"
 #include "Gameplay/Abilities/DataAssets/SkillConfig.h"
+#include "Gameplay/Core/DemoGameState.h"
+#include "Gameplay/Core/DemoPlayerState.h"
 
 ADemoAICharacter::ADemoAICharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
-	
 	HPBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBar"));
 	HPBar->SetupAttachment(RootComponent);
 	HPBar->SetVisibility(false);
@@ -45,6 +47,23 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 	if (!bIsDead && InCurrentHP <= 0.f && DemoCharacterGlobalConfig)
 	{
 		bIsDead = true;
+		
+		if (AbilitySystemComponent)
+		{
+			if (ADemoGameState* GameState = GetWorld()->GetGameState<ADemoGameState>())
+			{
+				GameState->SetCurrentAICount(GameState->GetCurrentAICount() - 1);
+			}
+			
+			const UBaseAttributeSet* AttributeSet = Cast<UBaseAttributeSet>(AbilitySystemComponent->GetAttributeSet(UBaseAttributeSet::StaticClass()));
+			if (ADemoCharacter* TempInstigator = Cast<ADemoCharacter>(AttributeSet->GetLastInstigator()))	
+			{
+				if (ADemoPlayerState* TempPlayerState = TempInstigator->GetPlayerState<ADemoPlayerState>())
+				{
+					TempPlayerState->OnEnemyDefeated();
+				}
+			}
+		}
 		
 		if (!DemoAICharacterGlobalConfig || !DemoAICharacterGlobalConfig->DeathMontage)
 		{
@@ -84,6 +103,7 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
+	SetActorTickEnabled(true);
     
 	SetActorLocation(Location);
 	SetActorRotation(Rotation);
@@ -97,11 +117,18 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 	}
 	
 	// 开启AI行为树
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (!AIController)
 	{
+		AIController = CachedAIController;
+	}
+	
+	if (AIController)
+	{
+		AIController->Possess(this);
 		if (UBehaviorTree* TempBehaviorTree = BehaviorTreeClass.IsNull() ? nullptr : BehaviorTreeClass.LoadSynchronous())
 		{
-			AIController->RunBehaviorTree(TempBehaviorTree);	
+			AIController->RunBehaviorTree(TempBehaviorTree);
 		}
 	}
 	
@@ -122,6 +149,14 @@ void ADemoAICharacter::Deactivate()
 
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
+	SetActorTickEnabled(false);
+	
+	// 关闭AI行为树
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		CachedAIController = AIController;
+		AIController->UnPossess();
+	}
 	
 	bIsActive = false;
 	bIsDead = true;

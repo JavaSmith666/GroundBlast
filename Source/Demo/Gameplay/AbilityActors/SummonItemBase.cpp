@@ -99,7 +99,9 @@ void ASummonItemBase::ApplyEffectsToFilterActors(const TArray<AActor*>& FilterAc
 		if (UDemoAbilitySystemComponent* ASC = FilterCharacter->GetAbilitySystemComponent())
 		{
 			UClass* DamageClass = DamageEffectClass.IsNull() ? nullptr : DamageEffectClass.LoadSynchronous();
-			FGameplayEffectSpecHandle DamageEffectSpec = ASC->MakeOutgoingSpec(DamageClass, 1.f, ASC->MakeEffectContext());
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+			ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
+			FGameplayEffectSpecHandle DamageEffectSpec = ASC->MakeOutgoingSpec(DamageClass, 1.f, ContextHandle);
 			ASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data.Get());
 		}
 	}

@@ -44,6 +44,8 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	
+	void StartNewRound();
+	
 protected:
 	UPROPERTY(EditAnywhere, Category = "RoomLevel")
 	FString RoomLevelAbsoluteURL;
@@ -52,10 +54,13 @@ protected:
 	float StartCountDownDelayTime = 3.f;
 	
 	UPROPERTY(EditAnywhere)
-	float CountDownTotalTime = 10.f;
+	int32 CountDownTotalTime = 10;
 	
 	UPROPERTY(EditAnywhere)
 	float FadeoutAnimationTotalTime = 3.5f;
+	
+	UPROPERTY(EditAnywhere)
+	float DelayShowRoundTextTime = 1.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	FTransform SpawnTransform;
@@ -68,9 +73,10 @@ protected:
 	
 	bool bHasSomeOneLoggedIn = false;
 	FTimerHandle DelayStartCountDownTimerHandle;
-	int32 CurrentRound = 1;
-	FTimerHandle DelayStartFirstRoundHandle;
+	int32 CurrentRound = 0;
+	FTimerHandle DelayStartNewRoundHandle;
 	FTimerHandle DelaySpawnAITimerHandle;
+	FTimerHandle DelayShowRoundTextTimerHandle;
 	
 	UPROPERTY(Transient)
 	ADemoAISpawner* AISpawner = nullptr;
@@ -83,11 +89,12 @@ protected:
 	void OnDelayStartCountDownTimerReached();
 	
 	UFUNCTION()
-	void OnDelayStartFirstRoundTimerReached();
+	void OnCountDownTimerReached();
 	
 	UFUNCTION()
-	void OnDelaySpanwAITimerReached(int32 AICount);
+	void OnShowRoundTextTimerReached();
 	
-	void StartNewRound();
+	UFUNCTION()
+	void OnDelaySpawnAITimerReached(const int32 InAICount) const;
 };
 

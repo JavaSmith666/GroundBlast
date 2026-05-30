@@ -22,6 +22,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	
+	AActor* GetLastInstigator() const { return LastInstigator; }
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_HP, Category = "Attributes")
 	FGameplayAttributeData HP;
@@ -56,5 +58,8 @@ protected:
 	
 	UFUNCTION()
 	void OnRep_Strength(FGameplayAttributeData& RepData);
+	
+	UPROPERTY(Transient)
+	AActor* LastInstigator = nullptr;
 };
 

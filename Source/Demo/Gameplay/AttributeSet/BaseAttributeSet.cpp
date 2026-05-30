@@ -36,6 +36,8 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		SetStrength(FMath::Clamp(GetStrength(), 0.0f, GetMaxStrength()));
 	}
+	
+	LastInstigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
 }
 
 void UBaseAttributeSet::OnRep_HP(FGameplayAttributeData& RepData)

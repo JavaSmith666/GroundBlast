@@ -40,7 +40,13 @@ void ADemoAISpawner::SpawnSingleAI(int32 InMaxCount)
 		return;
 	}
 
-	ADemoAICharacter* SpawnedAI = DemoGameInstanceSubsystem->GetAICharacterFromPool(GetActorLocation(), GetActorRotation());
+	FVector RandomDirection = FMath::VRand();
+	RandomDirection.Z = 0.f;
+	RandomDirection.Normalize();
+	float RandomRange = FMath::FRandRange(0.f, SpawnRange);
+	FVector SpawnLocation = GetActorLocation() + RandomDirection * RandomRange;
+	FRotator SpawnRotation = GetActorRotation();
+	ADemoAICharacter* SpawnedAI = DemoGameInstanceSubsystem->GetAICharacterFromPool(SpawnLocation, SpawnRotation);
 	if (SpawnedAI)
 	{
 		CurrentSpawnCount++;

@@ -45,7 +45,9 @@ void ALaserActor::Tick(float DeltaTime)
 					{
 						if (UClass* GEClass = LaserDamageEffect.IsNull() ? nullptr : LaserDamageEffect.LoadSynchronous())
 						{
-							FGameplayEffectSpecHandle SpecHandle = HitCharacterASC->MakeOutgoingSpec(GEClass, 1.f, HitCharacterASC->MakeEffectContext());
+							FGameplayEffectContextHandle ContextHandle = HitCharacterASC->MakeEffectContext();
+							ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
+							FGameplayEffectSpecHandle SpecHandle = HitCharacterASC->MakeOutgoingSpec(GEClass, 1.f, ContextHandle);
 							CurrentHitCharacterDamageEffectHandle = HitCharacterASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());	
 						}
 					}

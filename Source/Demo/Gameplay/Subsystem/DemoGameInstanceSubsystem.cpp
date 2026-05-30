@@ -146,7 +146,7 @@ void UDemoGameInstanceSubsystem::InitializeAIPool()
 	for (int32 i = 0; i < PoolSize; ++i)
 	{
 		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		ADemoAICharacter* NewAI = GetWorld()->SpawnActor<ADemoAICharacter>(AICharacterClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters);
 		if (NewAI)
 		{
@@ -182,7 +182,7 @@ ADemoAICharacter* UDemoGameInstanceSubsystem::GetAICharacterFromPool(const FVect
 
 	// 如果没有可用AI对象，则创建一个新的
 	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	ADemoAICharacter* NewAI = GetWorld()->SpawnActor<ADemoAICharacter>(AICharacterClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters);
 	if (NewAI)
 	{

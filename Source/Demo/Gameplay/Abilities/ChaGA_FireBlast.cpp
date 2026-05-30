@@ -80,7 +80,9 @@ void UChaGA_FireBlast::OnWaitPushEventTaskReady(FGameplayEventData Payload)
 			
 			if (UDemoAbilitySystemComponent* ASC = Enemy->GetAbilitySystemComponent())
 			{
-				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(FireBlastConfig->FireBlastDamageEffect, 1, ASC->MakeEffectContext());
+				FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+				ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
+				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(FireBlastConfig->FireBlastDamageEffect, 1, ContextHandle);
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}

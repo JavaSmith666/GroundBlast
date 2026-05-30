@@ -17,13 +17,15 @@ class ADemoPlayerState : public APlayerState
 public:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 	
+	void OnEnemyDefeated();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText NickName;
 	
+protected:
 	UPROPERTY(ReplicatedUsing=OnRep_DefeatCount)
 	int32 DefeatCount = 0;
 	
-protected:
 	UFUNCTION()
 	void OnRep_DefeatCount();
 };

@@ -22,6 +22,9 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn Settings")
 	float SpawnInterval = 3.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn Settings")
+	float SpawnRange = 400.0f;
 
 private:
 	int32 CurrentSpawnCount = 0;

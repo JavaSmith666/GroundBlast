@@ -10,6 +10,7 @@ class UBehaviorTree;
 class UWidgetComponent;
 class UAnimMontage;
 class UDemoAICharacterGlobalConfig;
+class AAIController;
 
 /**
  * 
@@ -43,6 +44,9 @@ protected:
 	UPROPERTY(Transient)
 	UDemoAICharacterGlobalConfig* DemoAICharacterGlobalConfig = nullptr;
 	
+	UPROPERTY(Transient)
+	AAIController* CachedAIController = nullptr;
+	
 	UFUNCTION()
 	void OnRep_bIsActive();
 	
@@ -50,7 +54,7 @@ protected:
 	void InitializeAICharacterGlobalConfig();
 	void TryGrantSkills();
 
-private:
+private:	
 	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)
 	bool bIsActive = false;
 };

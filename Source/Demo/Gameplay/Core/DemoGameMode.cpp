@@ -72,6 +72,17 @@ void ADemoGameModeRunning::PostLogin(APlayerController* NewPlayer)
 		bHasSomeOneLoggedIn = true;
 		GetWorld()->GetTimerManager().SetTimer(DelayStartCountDownTimerHandle, this, &ADemoGameModeRunning::OnDelayStartCountDownTimerReached, 
 			StartCountDownDelayTime, false);
+		
+		if (ADemoGameState* DemoGameState = GetWorld()->GetGameState<ADemoGameState>())
+		{
+			int32* AICount = RoundIndexToAICountMap.Find(1);
+			if (!AICount)
+			{
+				return;
+			}
+			
+			DemoGameState->SetCurrentAICount(*AICount);
+		}
 	}
 }
 
@@ -124,20 +135,25 @@ void ADemoGameModeRunning::OnDelayStartCountDownTimerReached()
 {
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
-		DemoGameState->MultiNotifyStartCountDownText();
+		DemoGameState->SetCountDownEndTimeStamp(FDateTime::UtcNow().ToUnixTimestamp() + CountDownTotalTime);
 	}
 	
-	GetWorld()->GetTimerManager().SetTimer(DelayStartFirstRoundHandle, this, &ADemoGameModeRunning::OnDelayStartFirstRoundTimerReached, 
-		CountDownTotalTime, false);
+	GetWorld()->GetTimerManager().SetTimer(DelayStartNewRoundHandle, this, &ADemoGameModeRunning::OnCountDownTimerReached, CountDownTotalTime, false);
 }
 
-void ADemoGameModeRunning::OnDelayStartFirstRoundTimerReached()
+void ADemoGameModeRunning::OnCountDownTimerReached()
 {
 	StartNewRound();
 }
 
 void ADemoGameModeRunning::StartNewRound()
 {
+	GetWorld()->GetTimerManager().SetTimer(DelayShowRoundTextTimerHandle, this, &ADemoGameModeRunning::OnShowRoundTextTimerReached, DelayShowRoundTextTime, false);
+}
+
+void ADemoGameModeRunning::OnShowRoundTextTimerReached()
+{
+	++CurrentRound;
 	int32* AICount = RoundIndexToAICountMap.Find(CurrentRound);
 	if (!AICount)
 	{
@@ -146,18 +162,19 @@ void ADemoGameModeRunning::StartNewRound()
 	
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
-		DemoGameState->MultiNotifyStartNewRound(CurrentRound, *AICount);
+		DemoGameState->SetCurrentAICount(*AICount);
+		DemoGameState->SetCurrentRoundIndex(CurrentRound);
 	}
 	
 	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUObject(this, &ADemoGameModeRunning::OnDelaySpanwAITimerReached, *AICount);
-	GetWorld()->GetTimerManager().SetTimer(DelaySpawnAITimerHandle, TimerDelegate, FadeoutAnimationTotalTime + 1.f, false);
+	TimerDelegate.BindUObject(this, &ADemoGameModeRunning::OnDelaySpawnAITimerReached, *AICount);
+	GetWorld()->GetTimerManager().SetTimer(DelaySpawnAITimerHandle, TimerDelegate, FadeoutAnimationTotalTime, false);
 }
 
-void ADemoGameModeRunning::OnDelaySpanwAITimerReached(int32 AICount)
+void ADemoGameModeRunning::OnDelaySpawnAITimerReached(const int32 InAICount) const
 {
 	if (AISpawner)
 	{
-		AISpawner->SpawnSeveralAI(AICount);
+		AISpawner->SpawnSeveralAI(InAICount);
 	}
 }

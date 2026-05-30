@@ -14,10 +14,22 @@ void ADemoPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME_CONDITION(ADemoPlayerState, DefeatCount, COND_OwnerOnly);
 }
 
+void ADemoPlayerState::OnEnemyDefeated()
+{
+	++DefeatCount;
+	if (GetNetMode() == NM_Standalone)
+	{
+		if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
+		{
+			DemoGameState->OnCurrentDefeatCountChanged.Broadcast(DefeatCount);
+		}
+	}
+}
+
 void ADemoPlayerState::OnRep_DefeatCount()
 {
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
-		DemoGameState->OnNotifyDefeatCountChanged.Broadcast(DefeatCount);
+		DemoGameState->OnCurrentDefeatCountChanged.Broadcast(DefeatCount);
 	}
 }

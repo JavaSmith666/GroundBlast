@@ -84,7 +84,9 @@ void UAnimInst_Shinbi::OnStartMontageNotify()
 		{
 			UClass* GEClass = MeleeDamageEffect.IsNull() ? nullptr : MeleeDamageEffect.LoadSynchronous();
 			UGameplayEffect* DamageEffect = GEClass ? GEClass->GetDefaultObject<UGameplayEffect>() : nullptr;
-			ASC->ApplyGameplayEffectToSelf(DamageEffect, 1.f, ASC->MakeEffectContext());
+			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
+			EffectContext.AddInstigator(OwnerCharacter, OwnerCharacter);
+			ASC->ApplyGameplayEffectToSelf(DamageEffect, 1.f, EffectContext);
 		}
 	}
 }
