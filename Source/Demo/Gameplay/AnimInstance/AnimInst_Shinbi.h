@@ -6,6 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "AnimInst_Shinbi.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogAnimInst_Shinbi, Log, All);
+
 class ADemoCharacter;
 class UGameplayEffect;
 

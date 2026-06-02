@@ -7,6 +7,8 @@
 #include "Engine/OverlapResult.h"
 #include "Gameplay/Character/DemoCharacter.h"
 
+DEFINE_LOG_CATEGORY(LogChaGA_FireBlast);
+
 void UChaGA_FireBlast::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
@@ -84,6 +86,7 @@ void UChaGA_FireBlast::OnWaitPushEventTaskReady(FGameplayEventData Payload)
 				ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
 				FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(FireBlastConfig->FireBlastDamageEffect, 1, ContextHandle);
 				ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				UE_LOG(LogChaGA_FireBlast, Warning, TEXT("[UChaGA_FireBlast::OnWaitPushEventTaskReady] Instigator: %s"), *OwnerCharacter->GetName());
 			}
 		}
 	}

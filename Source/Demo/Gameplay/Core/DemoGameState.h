@@ -36,12 +36,16 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnCurrentDefeatCountChanged OnCurrentDefeatCountChanged;
 	
+	UPROPERTY(BlueprintAssignable)
+	FOnCurrentRoundIndexChanged OnCurrentRoundIndexChanged;
+	
 	void SetHasGameStartedInRoom(bool bInHasClientGameStartedInRoom) { bHasClientGameStartedInRoom = bInHasClientGameStartedInRoom; }
 	void SetCountDownEndTimeStamp(int64 InCountDownEndTimeStamp);
 	void SetCurrentAICount(int32 InCurrentAICount);
 	void SetCurrentRoundIndex(int32 InCurrentRoundIndex);
 	
 	int32 GetCurrentAICount() const { return CurrentAICount; }
+	int32 GetCurrentRoundIndex() const { return CurrentRoundIndex; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -71,9 +75,6 @@ protected:
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnCurrentAICountChanged OnCurrentAICountChanged;
-	
-	UPROPERTY(BlueprintAssignable)
-	FOnCurrentRoundIndexChanged OnCurrentRoundIndexChanged;
 	
 	bool bHasClientGameStartedInRoom = false;
 	

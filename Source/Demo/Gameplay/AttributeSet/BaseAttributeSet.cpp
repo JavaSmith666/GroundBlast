@@ -4,6 +4,8 @@
 #include "Gameplay/Character/DemoCharacter.h"
 #include "Net/UnrealNetwork.h"
 
+DEFINE_LOG_CATEGORY(LogBaseAttributeSet);
+
 UBaseAttributeSet::UBaseAttributeSet()
 {
 }
@@ -18,6 +20,14 @@ void UBaseAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(UBaseAttributeSet, MaxMP);
 	DOREPLIFETIME(UBaseAttributeSet, Strength);
 	DOREPLIFETIME(UBaseAttributeSet, MaxStrength);
+}
+
+bool UBaseAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
+{
+	LastInstigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
+	UE_LOG(LogBaseAttributeSet, Warning, TEXT("[UBaseAttributeSet::PostGameplayEffectExecute] LastInstigator: %s"), *GetLastInstigator()->GetName());
+	
+	return Super::PreGameplayEffectExecute(Data);
 }
 
 void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
@@ -36,8 +46,6 @@ void UBaseAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		SetStrength(FMath::Clamp(GetStrength(), 0.0f, GetMaxStrength()));
 	}
-	
-	LastInstigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
 }
 
 void UBaseAttributeSet::OnRep_HP(FGameplayAttributeData& RepData)

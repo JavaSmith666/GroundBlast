@@ -65,16 +65,28 @@ void ADemoGameState::MultiNotifyGameOver_Implementation(bool bVictory)
 
 void ADemoGameState::SetCountDownEndTimeStamp(int64 InCountDownEndTimeStamp)
 {
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	
 	CountDownEndTimeStamp = InCountDownEndTimeStamp;
 	if (GetNetMode() == NM_Standalone)
 	{
 		const int32 LeftTime = InCountDownEndTimeStamp - FDateTime::UtcNow().ToUnixTimestamp();
 		OnNotifyCountDownLeftTime.Broadcast(LeftTime > 0 ? LeftTime : 0);
 	}
+	
+	UE_LOG(LogGameState, Warning, TEXT("SetCountDownEndTimeStamp: %lld"), CountDownEndTimeStamp);
 }
 
 void ADemoGameState::SetCurrentAICount(int32 InCurrentAICount)
 {
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	
 	CurrentAICount = InCurrentAICount;
 	if (GetNetMode() == NM_Standalone)
 	{
@@ -88,29 +100,41 @@ void ADemoGameState::SetCurrentAICount(int32 InCurrentAICount)
 			DemoGameMode->StartNewRound();
 		}	
 	}
+	
+	UE_LOG(LogGameState, Warning, TEXT("SetCurrentAICount: %d"), CurrentAICount);
 }
 
 void ADemoGameState::SetCurrentRoundIndex(int32 InCurrentRoundIndex)
 {
+	if (GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	
 	CurrentRoundIndex = InCurrentRoundIndex;
 	if (GetNetMode() == NM_Standalone)
 	{
 		OnCurrentRoundIndexChanged.Broadcast(CurrentRoundIndex);
 	}
+	
+	UE_LOG(LogGameState, Warning, TEXT("SetCurrentRoundIndex: %d"), CurrentRoundIndex);
 }
 
 void ADemoGameState::OnRep_CountDownEndTimeStamp() const
 {
 	const int32 LeftTime = CountDownEndTimeStamp - FDateTime::UtcNow().ToUnixTimestamp();
 	OnNotifyCountDownLeftTime.Broadcast(LeftTime > 0 ? LeftTime : 0);
+	UE_LOG(LogGameState, Warning, TEXT("OnRep_CountDownEndTimeStamp: %lld"), CountDownEndTimeStamp);
 }
 
 void ADemoGameState::OnRep_CurrentAICount() const
 {
 	OnCurrentAICountChanged.Broadcast(CurrentAICount);
+	UE_LOG(LogGameState, Warning, TEXT("OnRep_CurrentAICount: %d"), CurrentAICount);
 }
 
 void ADemoGameState::OnRep_CurrentRoundIndex() const
 {
 	OnCurrentRoundIndexChanged.Broadcast(CurrentRoundIndex);
+	UE_LOG(LogGameState, Warning, TEXT("OnRep_CurrentRoundIndex: %d"), CurrentRoundIndex);
 }

@@ -242,17 +242,6 @@ void ADemoGameModeRunning::OnDelaySpawnAITimerReached(const int32 InAICount) con
 {
 	if (AISpawner)
 	{
-		if (auto TempMesh = RoundIndexToAISkeletalMeshMap.Find(CurrentRound))
-		{
-			FSoftObjectPath TempMeshPath = (*TempMesh).ToSoftObjectPath();
-			UAssetManager::GetStreamableManager().RequestAsyncLoad(TempMeshPath, 
-				FStreamableDelegate::CreateWeakLambda(this, [this, InAICount, TempMeshPath]()
-				{
-					if (USkeletalMesh* TempSkeletalMesh = Cast<USkeletalMesh>(TempMeshPath.ResolveObject()))
-					{
-						AISpawner->SpawnSeveralAI(InAICount, TempSkeletalMesh);
-					}
-				}));
-		}
+		AISpawner->SpawnSeveralAI(InAICount);
 	}
 }

@@ -7,6 +7,8 @@
 #include "GameplayEffect.h"
 #include "Gameplay/Abilities/DemoCharacterGameplayAbility.h"
 
+DEFINE_LOG_CATEGORY(LogSummonItemBase);
+
 ASummonItemBase::ASummonItemBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -103,6 +105,7 @@ void ASummonItemBase::ApplyEffectsToFilterActors(const TArray<AActor*>& FilterAc
 			ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
 			FGameplayEffectSpecHandle DamageEffectSpec = ASC->MakeOutgoingSpec(DamageClass, 1.f, ContextHandle);
 			ASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpec.Data.Get());
+			UE_LOG(LogSummonItemBase, Log, TEXT("[ASummonItemBase::ApplyEffectsToFilterActors] Instigator: %s"), *OwnerCharacter->GetName());
 		}
 	}
 }

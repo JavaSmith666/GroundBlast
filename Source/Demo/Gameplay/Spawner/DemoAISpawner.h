@@ -17,7 +17,7 @@ public:
 	ADemoAISpawner();
 	
 	UFUNCTION(BlueprintCallable)
-	void SpawnSeveralAI(int32 InCount, USkeletalMesh* InMesh);
+	void SpawnSeveralAI(int32 InCount);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn Settings")
@@ -31,5 +31,5 @@ private:
 	
 	FTimerHandle SpawnTimerHandle;
 	
-	void SpawnSingleAI(int32 InMaxCount, USkeletalMesh* InMesh);
+	void SpawnSingleAI(int32 InMaxCount);
 };

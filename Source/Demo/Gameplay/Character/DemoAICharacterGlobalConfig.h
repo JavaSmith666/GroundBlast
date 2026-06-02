@@ -27,4 +27,7 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<USkillConfig> SkillConfig;
+	
+	UPROPERTY(EditAnywhere, Category = "BehaviorTree")
+    TObjectPtr<UBehaviorTree> BehaviorTreeClass = nullptr;
 };

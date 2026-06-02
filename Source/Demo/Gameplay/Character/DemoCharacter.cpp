@@ -170,6 +170,7 @@ void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedCo
 				ContextHandle.AddInstigator(this, this);
 				FGameplayEffectSpecHandle SpecHandle = OtherASC->MakeOutgoingSpec(DemoCharacterGlobalConfig->DashDamageEffect, 1.f, ContextHandle);
 				OtherASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				UE_LOG(LogDemoCharacter, Warning, TEXT("[ADemoCharacter::OnDashDamageSphereOverlap] Instigator: %s"), *GetName());
 				FVector Direction = (OtherCharacter->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 				OtherCharacter->PushAway(Direction, DemoCharacterGlobalConfig->DashImpulse, 1.f);
 			}
@@ -268,12 +269,15 @@ void ADemoCharacter::OnMainUICreatedEvent()
 
 void ADemoCharacter::MultiPlayMontage_Implementation(UAnimMontage* MontageToPlay)
 {
+	UE_LOG(LogDemoCharacter, Warning, TEXT("Try Playing Montage: %p"), MontageToPlay);
 	if (!MontageToPlay)
 	{
 		return;
 	}
 	
-	if (IsLocallyControlled())
+	UE_LOG(LogDemoCharacter, Warning, TEXT("IsServer: %d"), GetNetMode() < NM_Client);
+	UE_LOG(LogDemoCharacter, Warning, TEXT("IsLocallyControlled: %d"), IsLocallyControlled());
+	if (IsLocallyControlled() && TeamID != ETeamID::Enemy)
 	{
 		return;
 	}

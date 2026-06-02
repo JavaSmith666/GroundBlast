@@ -186,7 +186,11 @@ ADemoAICharacter* UDemoGameInstanceSubsystem::GetAICharacterFromPool(const FVect
 	ADemoAICharacter* NewAI = GetWorld()->SpawnActor<ADemoAICharacter>(AICharacterClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParameters);
 	if (NewAI)
 	{
-		NewAI->Activate(Location, Rotation);
+		FAutoActivateParameters ActivateParameters;
+		ActivateParameters.bAutoActivateOnAssetLoaded = true;
+		ActivateParameters.Location = Location;
+		ActivateParameters.Rotation = Rotation;
+		NewAI->SetAutoActivateParameters(ActivateParameters);
 		AIPool.Add(NewAI);
 	}
 	

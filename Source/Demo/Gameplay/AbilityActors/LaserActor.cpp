@@ -7,6 +7,8 @@
 #include "GameplayEffect.h"
 #include "Components/ArrowComponent.h"
 
+DEFINE_LOG_CATEGORY(LogLaserActor);
+
 ALaserActor::ALaserActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -48,7 +50,8 @@ void ALaserActor::Tick(float DeltaTime)
 							FGameplayEffectContextHandle ContextHandle = HitCharacterASC->MakeEffectContext();
 							ContextHandle.AddInstigator(OwnerCharacter, OwnerCharacter);
 							FGameplayEffectSpecHandle SpecHandle = HitCharacterASC->MakeOutgoingSpec(GEClass, 1.f, ContextHandle);
-							CurrentHitCharacterDamageEffectHandle = HitCharacterASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());	
+							CurrentHitCharacterDamageEffectHandle = HitCharacterASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+							UE_LOG(LogLaserActor, Warning, TEXT("[ALaserActor::Tick] Instigator: %s"), *OwnerCharacter->GetName());
 						}
 					}
 				}

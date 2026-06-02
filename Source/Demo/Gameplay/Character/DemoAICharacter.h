@@ -12,6 +12,15 @@ class UAnimMontage;
 class UDemoAICharacterGlobalConfig;
 class AAIController;
 
+DECLARE_LOG_CATEGORY_EXTERN(LogDemoAICharacter, Log, All);
+
+struct FAutoActivateParameters
+{
+	bool bAutoActivateOnAssetLoaded = false;
+	FVector Location = FVector::ZeroVector;
+	FRotator Rotation = FRotator::ZeroRotator;
+};
+
 /**
  * 
  */
@@ -24,19 +33,18 @@ public:
 	ADemoAICharacter();
 	
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > &OutLifetimeProps) const override;
 	virtual void CheckDeath(float InCurrentHP) override;
 	void Activate(const FVector& Location, const FRotator& Rotation);
 	void Deactivate();
 	bool IsActive() const { return bIsActive; }
+	void SetAutoActivateParameters(const FAutoActivateParameters& InAutoActivateParameters) { AutoActivateParameters = InAutoActivateParameters; }
 	UDemoAICharacterGlobalConfig* GetAICharacterGlobalConfig() const { return DemoAICharacterGlobalConfig; }
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "AI")
-	TSoftObjectPtr<UBehaviorTree> BehaviorTreeClass = nullptr;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Montage")
-	TSoftObjectPtr<UAnimMontage> SoftDeathMontage = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	TMap<int32, TSoftObjectPtr<USkeletalMesh>> RoundIndexToAISkeletalMeshMap;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components")
 	UWidgetComponent* HPBar = nullptr;
@@ -53,6 +61,9 @@ protected:
 	void OnAICharacterGlobalConfigLoaded();
 	void InitializeAICharacterGlobalConfig();
 	void TryGrantSkills();
+	void ChangeSkeletalMesh();
+	
+	FAutoActivateParameters AutoActivateParameters;
 
 private:	
 	UPROPERTY(ReplicatedUsing=OnRep_bIsActive)

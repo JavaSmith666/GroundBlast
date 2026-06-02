@@ -5,6 +5,8 @@
 #include "AbilitySystemComponent.h"
 #include "BaseAttributeSet.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogBaseAttributeSet, Log, All);
+
 // Standard GAS helper macro for generated attribute accessor functions.
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
@@ -21,6 +23,7 @@ public:
 	UBaseAttributeSet();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData &Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	
 	AActor* GetLastInstigator() const { return LastInstigator; }

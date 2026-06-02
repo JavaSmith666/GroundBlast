@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
-#include "GameplayTagContainer.h"
 #include "SummonItemBase.h"
 #include "GameFramework/Actor.h"
 #include "LaserActor.generated.h"
+
+DECLARE_LOG_CATEGORY_EXTERN(LogLaserActor, Log, All);
 
 class ADemoCharacter;
 class UGameplayEffect;

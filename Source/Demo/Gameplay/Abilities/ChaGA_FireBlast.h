@@ -6,6 +6,8 @@
 #include "Gameplay/Abilities/DemoCharacterGameplayAbility.h"
 #include "ChaGA_FireBlast.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogChaGA_FireBlast, Log, All);
+
 class AFireBlastActor;
 
 /**

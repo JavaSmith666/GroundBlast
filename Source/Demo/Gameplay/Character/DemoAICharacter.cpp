@@ -2,10 +2,10 @@
 
 #include "Gameplay/Character/DemoAICharacter.h"
 #include "DemoAICharacterGlobalConfig.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Gameplay/Abilities/DemoAbilitySystemComponent.h"
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Runtime/AIModule/Classes/AIController.h"
-#include "BehaviorTree/BehaviorTree.h"
 #include "Components/WidgetComponent.h"
 #include "Engine/AssetManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -15,8 +15,11 @@
 #include "Gameplay/Core/DemoGameState.h"
 #include "Gameplay/Core/DemoPlayerState.h"
 
+DEFINE_LOG_CATEGORY(LogDemoAICharacter);
+
 ADemoAICharacter::ADemoAICharacter()
 {
+	bIsActive = false;
 	HPBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HPBar"));
 	HPBar->SetupAttachment(RootComponent);
 	HPBar->SetVisibility(false);
@@ -32,6 +35,11 @@ void ADemoAICharacter::BeginPlay()
 	}
 	
 	InitializeAICharacterGlobalConfig();
+}
+
+void ADemoAICharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
 }
 
 void ADemoAICharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -60,6 +68,7 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 				if (ADemoPlayerState* TempPlayerState = TempInstigator->GetPlayerState<ADemoPlayerState>())
 				{
 					TempPlayerState->OnEnemyDefeated();
+					UE_LOG(LogDemoAICharacter, Warning, TEXT("Self: %s, Instigator: %s"), *GetName(), *TempPlayerState->GetName());
 				}
 			}
 		}
@@ -95,10 +104,12 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 
 void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotation)
 {
-	if (bIsActive || GetNetMode() == NM_Client)
+	if (GetNetMode() == NM_Client)
 	{
 		return;
 	}
+	
+	UE_LOG(LogDemoAICharacter, Warning, TEXT("Activating AI Character: %s"), *GetName());
 
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
@@ -133,27 +144,35 @@ void ADemoAICharacter::Activate(const FVector& Location, const FRotator& Rotatio
 	if (AIController)
 	{
 		AIController->Possess(this);
-		if (UBehaviorTree* TempBehaviorTree = BehaviorTreeClass.IsNull() ? nullptr : BehaviorTreeClass.LoadSynchronous())
+		if (DemoAICharacterGlobalConfig && DemoAICharacterGlobalConfig->BehaviorTreeClass)
 		{
-			AIController->RunBehaviorTree(TempBehaviorTree);
+			AIController->RunBehaviorTree(DemoAICharacterGlobalConfig->BehaviorTreeClass);
+			UE_LOG(LogDemoAICharacter, Warning, TEXT("Successfully started Behavior Tree: %s"), *DemoAICharacterGlobalConfig->BehaviorTreeClass->GetName());
 		}
 	}
 	
 	bIsActive = true;
 	bIsDead = false;
-	if (GetNetMode() == NM_Standalone && HPBar)
+	if (GetNetMode() == NM_Standalone)
 	{
-		HPBar->SetVisibility(bIsActive);
+		if (HPBar)
+		{
+			HPBar->SetVisibility(bIsActive);	
+		}
+		
+		ChangeSkeletalMesh();
 	}
 }
 
 void ADemoAICharacter::Deactivate()
 {
-	if (!bIsActive || GetNetMode() == NM_Client)
+	if (GetNetMode() == NM_Client)
 	{
 		return;
 	}
 
+	UE_LOG(LogDemoAICharacter, Warning, TEXT("Deactivating AI Character: %s"), *GetName());
+	
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 	SetActorTickEnabled(false);
@@ -165,6 +184,12 @@ void ADemoAICharacter::Deactivate()
 		TempCharacterMovementComponent->StopMovementImmediately();
 		TempCharacterMovementComponent->SetComponentTickEnabled(false);
 		TempCharacterMovementComponent->SetActive(false);
+	}
+	
+	// 结束死亡动画
+	if (DemoAICharacterGlobalConfig && DemoAICharacterGlobalConfig->DeathMontage)
+	{
+		StopAnimMontage(DemoAICharacterGlobalConfig->DeathMontage);
 	}
 	
 	// 关闭AI行为树
@@ -188,6 +213,16 @@ void ADemoAICharacter::OnRep_bIsActive()
 	{
 		HPBar->SetVisibility(bIsActive);
 	}
+	
+	if (DemoAICharacterGlobalConfig && DemoAICharacterGlobalConfig->DeathMontage)
+	{
+		StopAnimMontage(DemoAICharacterGlobalConfig->DeathMontage);
+	}
+	
+	if (bIsActive)
+	{
+		ChangeSkeletalMesh();	
+	}
 }
 
 void ADemoAICharacter::OnAICharacterGlobalConfigLoaded()
@@ -197,6 +232,11 @@ void ADemoAICharacter::OnAICharacterGlobalConfigLoaded()
 	{
 		DemoAICharacterGlobalConfig = Settings->AICharacterGlobalConfig.Get();
 		TryGrantSkills();
+		
+		if (AutoActivateParameters.bAutoActivateOnAssetLoaded && GetNetMode() < NM_Client)
+		{
+			Activate(AutoActivateParameters.Location, AutoActivateParameters.Rotation);
+		}
 	}
 }
 
@@ -212,7 +252,7 @@ void ADemoAICharacter::InitializeAICharacterGlobalConfig()
 
 void ADemoAICharacter::TryGrantSkills()
 {
-	if (!DemoAICharacterGlobalConfig || !AbilitySystemComponent)
+	if (!DemoAICharacterGlobalConfig || !AbilitySystemComponent || GetNetMode() == NM_Client)
 	{
 		return;
 	}
@@ -220,4 +260,31 @@ void ADemoAICharacter::TryGrantSkills()
 	FGameplayAbilitySpec Spec(DemoAICharacterGlobalConfig->AbilityClass, 1, INDEX_NONE, this);
 	Spec.SourceObject = DemoAICharacterGlobalConfig->SkillConfig.Get();
 	AbilitySystemComponent->GiveAbility(Spec);
+}
+
+void ADemoAICharacter::ChangeSkeletalMesh()
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	
+	ADemoGameState* DemoGameState = GetWorld()->GetGameState<ADemoGameState>();
+	if (!DemoGameState)
+	{
+		return;
+	}
+	
+	int32 CurrentRoundIndex = DemoGameState->GetCurrentRoundIndex();
+	if (CurrentRoundIndex <= 0)
+	{
+		return;
+	}
+	
+	if (auto FoundMesh = RoundIndexToAISkeletalMeshMap.Find(CurrentRoundIndex))
+	{
+		USkeletalMesh* TempMesh = FoundMesh->IsNull() ? nullptr : FoundMesh->LoadSynchronous();
+		GetMesh()->SetSkeletalMesh(TempMesh);
+        UE_LOG(LogDemoAICharacter, Warning, TEXT("Successfully changed SkeletalMesh for Round %d"), CurrentRoundIndex);
+	}
 }

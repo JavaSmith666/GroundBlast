@@ -8,6 +8,8 @@
 #include "Gameplay/Abilities/DemoAbilitySystemComponent.h"
 #include "Gameplay/Character/DemoCharacter.h"
 
+DEFINE_LOG_CATEGORY(LogAnimInst_Shinbi);
+
 void UAnimInst_Shinbi::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
@@ -87,6 +89,7 @@ void UAnimInst_Shinbi::OnStartMontageNotify()
 			FGameplayEffectContextHandle EffectContext = ASC->MakeEffectContext();
 			EffectContext.AddInstigator(OwnerCharacter, OwnerCharacter);
 			ASC->ApplyGameplayEffectToSelf(DamageEffect, 1.f, EffectContext);
+			UE_LOG(LogAnimInst_Shinbi, Warning, TEXT("[UAnimInst_Shinbi::OnStartMontageNotify] Instigator: %s"), *OwnerCharacter->GetName());
 		}
 	}
 }

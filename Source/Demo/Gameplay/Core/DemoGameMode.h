@@ -44,6 +44,8 @@ public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 	
+	int32 GetCurrentRound() const { return CurrentRound; }
+	
 	void StartNewRound();
 	void OnPlayerDefeatCountChanged();
 	void OnPlayerDead();
@@ -72,9 +74,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = "Spawner")
 	TMap<int32, int32> RoundIndexToAICountMap;
-	
-	UPROPERTY(EditAnywhere, Category = "Spawner")
-	TMap<int32, TSoftObjectPtr<USkeletalMesh>> RoundIndexToAISkeletalMeshMap;
 	
 	bool bHasSomeOneLoggedIn = false;
 	FTimerHandle DelayStartCountDownTimerHandle;
