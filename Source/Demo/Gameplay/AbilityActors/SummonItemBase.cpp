@@ -110,7 +110,7 @@ void ASummonItemBase::ApplyEffectsToFilterActors(const TArray<AActor*>& FilterAc
 	}
 }
 
-void ASummonItemBase::SpawnEmitter()
+void ASummonItemBase::ExecuteDamageGameplayCue()
 {
 	if (!OwnerCharacter)
 	{

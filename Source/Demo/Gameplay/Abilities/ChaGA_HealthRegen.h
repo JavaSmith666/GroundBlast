@@ -26,4 +26,8 @@ protected:
 		const FGameplayTagContainer* SourceTags = nullptr, 
 		const FGameplayTagContainer* TargetTags = nullptr, 
 		OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const;
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tags")
+	FGameplayTag HealthRegenGameplayCueTag;
 };

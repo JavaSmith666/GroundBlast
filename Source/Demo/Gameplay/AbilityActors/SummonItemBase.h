@@ -29,7 +29,7 @@ public:
 	
 	virtual void ApplyEffectsToFilterActors(const TArray<AActor*>& FilterActors);
 	
-	virtual void SpawnEmitter();
+	virtual void ExecuteDamageGameplayCue();
 	
 	void SetDead(float InDelay = 0.f);
 	

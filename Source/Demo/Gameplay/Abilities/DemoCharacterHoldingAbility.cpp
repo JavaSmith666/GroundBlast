@@ -6,6 +6,7 @@
 #include "Gameplay/Character/DemoCharacter.h"
 #include "Gameplay/Character/DemoCharacterGlobalConfig.h"
 #include "Gameplay/AbilityActors//GroundBlastActor.h"
+#include "Kismet/GameplayStatics.h"
 
 void UDemoCharacterHoldingAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo,
                                                  const FGameplayAbilitySpec& Spec)
@@ -30,7 +31,7 @@ void UDemoCharacterHoldingAbility::AuthConfirmHoldingAbility(FPredictionKey Pred
 	{
 		FScopedPredictionWindow ScopedPredictionWindow(ASC, PredictionKey, true);
 		ApplyCostAndCooldown(PredictionKey);
-		SummonItem->SpawnEmitter();
+		SummonItem->ExecuteDamageGameplayCue();
 	}
 	
 	// 伤害不参与预测
@@ -196,7 +197,7 @@ void UDemoCharacterHoldingAbility::OnSkillConfirmed()
 			
 			TArray<AActor*> FilterActors;
 			SummonItem->ConfirmHoldingAbility(FilterActors);
-			SummonItem->SpawnEmitter();
+			SummonItem->ExecuteDamageGameplayCue();
 			
 			ASC->ServerConfirmHoldingAbility(CurrentSpecHandle, PredictionKey);
 		}

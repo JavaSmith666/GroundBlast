@@ -5,6 +5,8 @@
 
 #include "DemoGameMode.h"
 #include "DemoGameState.h"
+#include "DemoPlayerController.h"
+#include "Gameplay/Character/DemoCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 void ADemoPlayerState::BeginPlay()
@@ -24,7 +26,7 @@ void ADemoPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
-	DOREPLIFETIME_CONDITION(ADemoPlayerState, DefeatCount, COND_OwnerOnly);
+	DOREPLIFETIME(ADemoPlayerState, DefeatCount);
 }
 
 void ADemoPlayerState::OnEnemyDefeated()
@@ -52,6 +54,12 @@ void ADemoPlayerState::OnEnemyDefeated()
 
 void ADemoPlayerState::OnRep_DefeatCount()
 {
+	ADemoPlayerController* DemoPlayerController = Cast<ADemoPlayerController>(GetOwner());
+	if (!DemoPlayerController || !DemoPlayerController->IsLocalController())
+	{
+		return;
+	}
+	
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
 		DemoGameState->OnCurrentDefeatCountChanged.Broadcast(DefeatCount);
