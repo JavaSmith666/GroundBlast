@@ -25,7 +25,7 @@ void UBaseAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 bool UBaseAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
 {
 	LastInstigator = Data.EffectSpec.GetEffectContext().GetOriginalInstigator();
-	UE_LOG(LogBaseAttributeSet, Warning, TEXT("[UBaseAttributeSet::PostGameplayEffectExecute] LastInstigator: %s"), *GetLastInstigator()->GetName());
+	UE_LOG(LogBaseAttributeSet, Warning, TEXT("[UBaseAttributeSet::PostGameplayEffectExecute] LastInstigator: %s"), LastInstigator ? *LastInstigator->GetName() : TEXT("None"));
 	
 	return Super::PreGameplayEffectExecute(Data);
 }
