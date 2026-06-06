@@ -19,6 +19,8 @@ class UGameplayAbility;
 class UArrowComponent;
 class UDemoCharacterGlobalConfig;
 class USphereComponent;
+class USoundBase;
+class UAudioComponent;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogDemoCharacter, Log, All);
 
@@ -86,6 +88,19 @@ protected:
 private:
 	void InitializeCharacterGlobalConfig();
 #pragma endregion Base
+	
+#pragma region Sound
+public:
+	UFUNCTION(BlueprintCallable, Category="Sound")
+	void PlaySound(USoundBase* InSoundAsset);
+	
+	UFUNCTION(BlueprintCallable, Category="Sound")
+	void StopSound();
+	
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Component")
+	UAudioComponent* AudioComponent = nullptr;
+#pragma endregion Sound
 	
 #pragma region Melee
 public:

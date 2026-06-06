@@ -22,6 +22,7 @@
 #include "Gameplay/Abilities/DataAssets/SkillConfig.h"
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
 #include "Components/ArrowComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "Gameplay/Core/DemoGameMode.h"
 #include "Gameplay/Settings/DemoCharacterSettings.h"
@@ -63,6 +64,11 @@ ADemoCharacter::ADemoCharacter()
 	
 	MeleeDamageCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MeleeDamageCapsule"));
 	MeleeDamageCapsule->SetupAttachment(GetMesh(), MeleeDamageCapsuleSocketName);
+	
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	AudioComponent->SetupAttachment(RootComponent);
+	AudioComponent->bAutoActivate = false;
+	AudioComponent->bAllowSpatialization = true;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UDemoAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
@@ -145,8 +151,32 @@ void ADemoCharacter::InitializeCharacterGlobalConfig()
 	}
 }
 
+void ADemoCharacter::PlaySound(USoundBase* InSoundAsset)
+{
+	if (!AudioComponent || !InSoundAsset)
+	{
+		return;
+	}
+	
+	if (AudioComponent->IsPlaying())
+	{
+		AudioComponent->Stop();
+	}
+	
+	AudioComponent->SetSound(InSoundAsset);
+	AudioComponent->Play();
+}
+
+void ADemoCharacter::StopSound()
+{
+	if (AudioComponent && AudioComponent->IsPlaying())
+	{
+		AudioComponent->Stop();
+	}
+}
+
 void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                               UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == this || DashOverlapActors.Contains(OtherActor) || !DemoCharacterGlobalConfig)
 	{
@@ -459,7 +489,7 @@ void ADemoCharacter::CheckDeath(float InCurrentHP)
 		
 		if (GetNetMode() != NM_DedicatedServer)
 		{
-			// 本地预测播放蒙太奇
+			// 本地预测播放死亡动画
 			if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
 			{
 				AnimInst->Montage_Play(DemoCharacterGlobalConfig->DeathMontage);
@@ -467,8 +497,8 @@ void ADemoCharacter::CheckDeath(float InCurrentHP)
 		}
 		else
 		{
-			// 多播RPC让模拟端播蒙太奇
-			MultiPlayMontage(DemoCharacterGlobalConfig->DeathMontage);	
+			// 多播RPC让模拟端播放死亡动画
+			MultiPlayMontage(DemoCharacterGlobalConfig->DeathMontage);
 		}
 		
 		if (IsLocallyControlled())

@@ -80,7 +80,7 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 		
 		if (GetNetMode() != NM_DedicatedServer)
 		{
-			// 本地预测播放蒙太奇
+			// 本地预测播放死亡动画
 			if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
 			{
 				AnimInst->Montage_Play(DemoAICharacterGlobalConfig->DeathMontage);
@@ -88,8 +88,8 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 		}
 		else
 		{
-			// 多播RPC让模拟端播蒙太奇
-			MultiPlayMontage(DemoAICharacterGlobalConfig->DeathMontage);	
+			// 多播RPC让模拟端播放死亡动画
+			MultiPlayMontage(DemoAICharacterGlobalConfig->DeathMontage);
 		}
 		
 		if (IsLocallyControlled())

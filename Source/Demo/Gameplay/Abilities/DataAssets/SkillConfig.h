@@ -76,8 +76,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TSubclassOf<UGameplayEffect> LaserDamageEffect;
 	
-	UPROPERTY(editAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FGameplayTag LaserCostTag;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<USoundBase> LaserLoopSound = nullptr;
 };
 
 UCLASS(BlueprintType)

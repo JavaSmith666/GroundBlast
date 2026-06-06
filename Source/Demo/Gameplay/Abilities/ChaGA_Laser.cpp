@@ -33,6 +33,11 @@ bool UChaGA_Laser::OnDemoCharacterGameplayAbilityActivated(const FGameplayAbilit
 	
 	OwnerCharacter->UpdateCameraLockState(true);
 	
+	if (LaserConfig->LaserLoopSound)
+	{
+		OwnerCharacter->PlaySound(LaserConfig->LaserLoopSound.Get());	
+	}
+	
 	return res;
 }
 
@@ -41,6 +46,7 @@ void UChaGA_Laser::PreDemoCharacterGameplayAbilityEnded(const FGameplayAbilitySp
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	OwnerCharacter->UpdateCameraLockState(false);
+	OwnerCharacter->StopSound();
 	
 	ULaserConfig* LaserConfig = Cast<ULaserConfig>(RoleSkillConfig);
 	if (!LaserConfig)
