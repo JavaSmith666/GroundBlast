@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "DemoPlayerState.generated.h"
 
+class ADemoCharacter;
+
 /**
  * 
  */
@@ -21,6 +23,9 @@ public:
 	int32 GetDefeatCount() const { return DefeatCount; }
 	void SetRank(int32 NewRank) { Rank = NewRank; }
 	
+	UFUNCTION(BlueprintCallable)
+	ADemoCharacter* GetOwningCharacter() const;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FText NickName;
 	

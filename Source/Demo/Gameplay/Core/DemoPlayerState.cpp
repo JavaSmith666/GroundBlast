@@ -22,6 +22,18 @@ void ADemoPlayerState::BeginPlay()
 	}
 }
 
+ADemoCharacter* ADemoPlayerState::GetOwningCharacter() const
+{	
+	ADemoPlayerController* DemoPlayerController = Cast<ADemoPlayerController>(GetOwner());
+	if (!DemoPlayerController)
+	{
+		return nullptr;
+	}
+	
+	ADemoCharacter* DemoCharacter = Cast<ADemoCharacter>(DemoPlayerController->GetCharacter());
+	return DemoCharacter;
+}
+
 void ADemoPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
