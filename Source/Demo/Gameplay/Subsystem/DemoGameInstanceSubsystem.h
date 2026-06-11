@@ -50,12 +50,16 @@ public:
 protected:
 	UFUNCTION()
 	void OnLoadLevelDelayTimeReached(FString InURL, bool bAbsolute, bool bIsStandalone);
-
-	UPROPERTY(Transient)
-	TArray<ADemoAICharacter*> AIPool;
-
+	
 	UPROPERTY(Transient)
 	TSubclassOf<ADemoAICharacter> AICharacterClass = nullptr;
 
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ADemoAICharacter>> AIPool;
+	
+	UPROPERTY(Transient)
+	TMap<TObjectPtr<ADemoAICharacter>, int32> AIToObjectPoolIndexMap;
+
 	int32 PoolSize = 50;
+	int32 AvailableCount = 0;
 };

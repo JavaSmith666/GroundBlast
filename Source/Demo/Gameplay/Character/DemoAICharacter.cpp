@@ -2,6 +2,7 @@
 
 #include "Gameplay/Character/DemoAICharacter.h"
 #include "DemoAICharacterGlobalConfig.h"
+#include "DemoCharacterGlobalConfig.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Gameplay/Abilities/DemoAbilitySystemComponent.h"
 #include "Gameplay/AttributeSet/BaseAttributeSet.h"
@@ -51,6 +52,7 @@ void ADemoAICharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void ADemoAICharacter::CheckDeath(float InCurrentHP)
 {
+	// AI 逻辑必为 NM_Standalone 或 NM_DedicateServer
 	if (!bIsDead && InCurrentHP <= 0.f && DemoCharacterGlobalConfig)
 	{
 		bIsDead = true;
@@ -65,6 +67,7 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 			const UBaseAttributeSet* AttributeSet = Cast<UBaseAttributeSet>(AbilitySystemComponent->GetAttributeSet(UBaseAttributeSet::StaticClass()));
 			if (ADemoCharacter* TempInstigator = Cast<ADemoCharacter>(AttributeSet->GetLastInstigator()))	
 			{
+				TempInstigator->PlayDefeatSound();
 				if (ADemoPlayerState* TempPlayerState = TempInstigator->GetPlayerState<ADemoPlayerState>())
 				{
 					TempPlayerState->OnEnemyDefeated();
@@ -73,31 +76,9 @@ void ADemoAICharacter::CheckDeath(float InCurrentHP)
 			}
 		}
 		
-		if (!DemoAICharacterGlobalConfig || !DemoAICharacterGlobalConfig->DeathMontage)
+		if (DemoAICharacterGlobalConfig && DemoAICharacterGlobalConfig->DeathMontage)
 		{
-			return;
-		}
-		
-		if (GetNetMode() != NM_DedicatedServer)
-		{
-			// 本地预测播放死亡动画
-			if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-			{
-				AnimInst->Montage_Play(DemoAICharacterGlobalConfig->DeathMontage);
-			}
-		}
-		else
-		{
-			// 多播RPC让模拟端播放死亡动画
 			MultiPlayMontage(DemoAICharacterGlobalConfig->DeathMontage);
-		}
-		
-		if (IsLocallyControlled())
-		{
-			if (APlayerController* PC = GetPlayerController())
-			{
-				PC->DisableInput(PC);
-			}
 		}
 	}
 }

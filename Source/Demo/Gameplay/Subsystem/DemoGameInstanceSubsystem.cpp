@@ -152,8 +152,11 @@ void UDemoGameInstanceSubsystem::InitializeAIPool()
 		{
 			NewAI->Deactivate();
 			AIPool.Add(NewAI);
+			AIToObjectPoolIndexMap.Emplace(NewAI, i);
 		}
 	}
+	
+	AvailableCount = PoolSize;
 }
 
 void UDemoGameInstanceSubsystem::DeInitializeAIPool()
@@ -166,16 +169,20 @@ void UDemoGameInstanceSubsystem::DeInitializeAIPool()
 		}
 	}
 
-	AIPool.Empty(); 
+	AIPool.Empty();
+	AIToObjectPoolIndexMap.Empty();
+	AvailableCount = 0;
 }
 
 ADemoAICharacter* UDemoGameInstanceSubsystem::GetAICharacterFromPool(const FVector& Location, const FRotator& Rotation)
 {
-	for (ADemoAICharacter* AI : AIPool)
+	if (AvailableCount > 0 && AvailableCount <= AIPool.Num())
 	{
+		ADemoAICharacter* AI = AIPool[AvailableCount - 1];
 		if (AI && !AI->IsActive())
 		{
 			AI->Activate(Location, Rotation);
+			--AvailableCount;
 			return AI;
 		}
 	}
@@ -192,15 +199,35 @@ ADemoAICharacter* UDemoGameInstanceSubsystem::GetAICharacterFromPool(const FVect
 		ActivateParameters.Rotation = Rotation;
 		NewAI->SetAutoActivateParameters(ActivateParameters);
 		AIPool.Add(NewAI);
+		AIToObjectPoolIndexMap.Emplace(NewAI, AIPool.Num() - 1);
 	}
 	
+	UE_LOG(LogDemoAICharacter, Warning, TEXT("[UDemoGameInstanceSubsystem::GetAICharacterFromPool] AvailCount: %d"), AvailableCount);
 	return NewAI;
 }
 
 void UDemoGameInstanceSubsystem::ReturnAICharacterToPool(ADemoAICharacter* CharacterToReturn)
 {
-	if (CharacterToReturn)
+	if (!CharacterToReturn)
 	{
-		CharacterToReturn->Deactivate();
+		return;
 	}
+	
+	CharacterToReturn->Deactivate();
+	
+	int32 ReturnIndex = AIToObjectPoolIndexMap[CharacterToReturn];
+	if (ReturnIndex == AvailableCount)
+	{
+		++AvailableCount;
+		UE_LOG(LogDemoAICharacter, Warning, TEXT("[UDemoGameInstanceSubsystem::ReturnAICharacterToPool] AvailCount: %d"), AvailableCount);
+		return;
+	}
+	
+	// 与AvailableCount下标处元素交换
+	AIToObjectPoolIndexMap[AIPool[AvailableCount]] = ReturnIndex;
+	AIToObjectPoolIndexMap[CharacterToReturn] = AvailableCount;
+	Swap(AIPool[AvailableCount], CharacterToReturn);
+	++AvailableCount;
+	
+	UE_LOG(LogDemoAICharacter, Warning, TEXT("[UDemoGameInstanceSubsystem::ReturnAICharacterToPool] AvailCount: %d"), AvailableCount);
 }

@@ -34,7 +34,14 @@ UENUM(BlueprintType)
 enum class ETeamID : uint8
 {
 	Player,
-	Enemy
+	Enemy,
+};
+
+UENUM(BlueprintType)
+enum class EAudioType : uint8
+{
+	General,
+	Skill,
 };
 
 USTRUCT(BlueprintType)
@@ -92,14 +99,34 @@ private:
 #pragma region Sound
 public:
 	UFUNCTION(BlueprintCallable, Category="Sound")
-	void PlaySound(USoundBase* InSoundAsset);
+	void PlaySound(FName InSoundName, EAudioType InAudioType = EAudioType::General);
 	
 	UFUNCTION(BlueprintCallable, Category="Sound")
-	void StopSound();
+	void StopSound(EAudioType InAudioType = EAudioType::General);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiPlaySound(FName InSoundName, EAudioType InAudioType = EAudioType::General);
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiStopSound(EAudioType InAudioType = EAudioType::General);
+	
+	UFUNCTION(BlueprintCallable, Category="Sound")
+	void PlayDefeatSound();
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiPlayDefeatSound(int32 SoundIndex);
 	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Component")
-	UAudioComponent* AudioComponent = nullptr;
+	UAudioComponent* GeneralAudioComponent = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Component")
+	UAudioComponent* SkillAudioComponent = nullptr;
+	
+private:
+	void Internal_PlaySound(FName InSoundName, EAudioType InAudioType = EAudioType::General);
+	void Internal_StopSound(EAudioType InAudioType = EAudioType::General);
+	
 #pragma endregion Sound
 	
 #pragma region Melee

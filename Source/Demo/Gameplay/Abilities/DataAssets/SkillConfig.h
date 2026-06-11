@@ -80,7 +80,7 @@ public:
 	FGameplayTag LaserCostTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<USoundBase> LaserLoopSound = nullptr;
+	FName LaserSoundName;
 };
 
 UCLASS(BlueprintType)

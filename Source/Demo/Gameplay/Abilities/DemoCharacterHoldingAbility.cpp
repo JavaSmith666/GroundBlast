@@ -180,7 +180,7 @@ void UDemoCharacterHoldingAbility::OnHoldingMontageCancelled()
 
 void UDemoCharacterHoldingAbility::OnSkillConfirmed()
 {
-	if (!PlayFireMontage() || !OwnerCharacter)
+	if (!OwnerCharacter || !SummonItem || !PlayFireMontage())
 	{
 		return;
 	}

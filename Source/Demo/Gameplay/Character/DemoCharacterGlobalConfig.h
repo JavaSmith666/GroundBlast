@@ -43,4 +43,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Impulse")
 	float DashImpulse = 1500.f;
+	
+	UPROPERTY(EditAnywhere, Category="Sound")
+	TArray<TObjectPtr<USoundBase>> DefeatSounds;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TMap<FName, TObjectPtr<USoundBase>> SoundNameToAssetMap;
 };

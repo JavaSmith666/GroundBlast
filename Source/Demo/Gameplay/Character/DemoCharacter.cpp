@@ -58,6 +58,11 @@ ADemoCharacter::ADemoCharacter()
 		LaserPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("LaserPoint"));
 		LaserPoint->SetupAttachment(RootComponent);
 		
+		SkillAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("LaserAudioComponent"));
+		SkillAudioComponent->SetupAttachment(RootComponent);
+		SkillAudioComponent->bAutoActivate = false;
+		SkillAudioComponent->bAllowSpatialization = true;
+		
 		DashDamageSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DashDamageSphere"));
 		DashDamageSphere->SetupAttachment(RootComponent);
 	}
@@ -65,10 +70,11 @@ ADemoCharacter::ADemoCharacter()
 	MeleeDamageCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MeleeDamageCapsule"));
 	MeleeDamageCapsule->SetupAttachment(GetMesh(), MeleeDamageCapsuleSocketName);
 	
-	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
-	AudioComponent->SetupAttachment(RootComponent);
-	AudioComponent->bAutoActivate = false;
-	AudioComponent->bAllowSpatialization = true;
+	GeneralAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	GeneralAudioComponent->SetupAttachment(RootComponent);
+	GeneralAudioComponent->bAutoActivate = false;
+	GeneralAudioComponent->bAllowSpatialization = true;
+	GeneralAudioComponent->bCanPlayMultipleInstances = true;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UDemoAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 }
@@ -151,28 +157,127 @@ void ADemoCharacter::InitializeCharacterGlobalConfig()
 	}
 }
 
-void ADemoCharacter::PlaySound(USoundBase* InSoundAsset)
+void ADemoCharacter::PlaySound(FName InSoundName, EAudioType InAudioType)
 {
-	if (!AudioComponent || !InSoundAsset)
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		MultiPlaySound(InSoundName, InAudioType);
+	}
+	else
+	{
+		Internal_PlaySound(InSoundName, InAudioType);
+	}
+}
+
+void ADemoCharacter::StopSound(EAudioType InAudioType)
+{
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		MultiStopSound(InAudioType);
+	}
+	else
+	{
+		Internal_StopSound(InAudioType);
+	}
+}
+
+void ADemoCharacter::MultiPlaySound_Implementation(FName InSoundName, EAudioType InAudioType)
+{
+	if (GetNetMode() == NM_DedicatedServer)
 	{
 		return;
 	}
 	
-	if (AudioComponent->IsPlaying())
-	{
-		AudioComponent->Stop();
-	}
-	
-	AudioComponent->SetSound(InSoundAsset);
-	AudioComponent->Play();
+	Internal_PlaySound(InSoundName, InAudioType);
 }
 
-void ADemoCharacter::StopSound()
+void ADemoCharacter::MultiStopSound_Implementation(EAudioType InAudioType)
 {
-	if (AudioComponent && AudioComponent->IsPlaying())
+	if (GetNetMode() == NM_DedicatedServer)
 	{
-		AudioComponent->Stop();
+		return;
 	}
+	
+	Internal_StopSound(InAudioType);
+}
+
+void ADemoCharacter::Internal_PlaySound(FName InSoundName, EAudioType InAudioType)
+{
+	if (!DemoCharacterGlobalConfig)
+	{
+		return;
+	}
+	
+	TObjectPtr<USoundBase>* SoundPtr = DemoCharacterGlobalConfig->SoundNameToAssetMap.Find(InSoundName);
+	if (!SoundPtr)
+	{
+		return;
+	}
+	
+	if (InAudioType == EAudioType::General)
+	{
+		if (GeneralAudioComponent)
+		{
+			GeneralAudioComponent->SetSound(*SoundPtr);
+			GeneralAudioComponent->Play();
+		}
+	}
+	else if (InAudioType == EAudioType::Skill)
+	{
+		if (SkillAudioComponent)
+		{
+			SkillAudioComponent->SetSound(*SoundPtr);
+			SkillAudioComponent->Play();
+		}
+	}
+}
+
+void ADemoCharacter::Internal_StopSound(EAudioType InAudioType)
+{
+	if (InAudioType == EAudioType::General)
+	{
+		if (GeneralAudioComponent)
+		{
+			GeneralAudioComponent->Stop();
+		}
+	}
+	else if (InAudioType == EAudioType::Skill)
+	{
+		if (SkillAudioComponent)
+		{
+			SkillAudioComponent->Stop();
+		}
+	}
+}
+
+void ADemoCharacter::PlayDefeatSound()
+{
+	if (!DemoCharacterGlobalConfig || DemoCharacterGlobalConfig->DefeatSounds.IsEmpty())
+	{
+		return;
+	}
+	
+	int32 SoundIndex = FMath::RandRange(0, DemoCharacterGlobalConfig->DefeatSounds.Num() - 1);
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		MultiPlayDefeatSound(SoundIndex);
+	}
+	else
+	{
+		GeneralAudioComponent->SetSound(DemoCharacterGlobalConfig->DefeatSounds[SoundIndex]);
+		GeneralAudioComponent->Play();
+	}
+}
+
+void ADemoCharacter::MultiPlayDefeatSound_Implementation(int32 SoundIndex)
+{
+	if (GetNetMode() == NM_DedicatedServer || !GeneralAudioComponent)
+	{
+		return;
+	}
+	
+	GeneralAudioComponent->SetSound(DemoCharacterGlobalConfig->DefeatSounds[SoundIndex]);
+	GeneralAudioComponent->Play();
 }
 
 void ADemoCharacter::OnDashDamageSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
