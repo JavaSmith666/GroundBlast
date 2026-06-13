@@ -183,7 +183,7 @@ void ADemoCharacter::StopSound(EAudioType InAudioType)
 
 void ADemoCharacter::MultiPlaySound_Implementation(FName InSoundName, EAudioType InAudioType)
 {
-	if (GetNetMode() == NM_DedicatedServer)
+	if (GetNetMode() == NM_DedicatedServer || IsLocallyControlled())
 	{
 		return;
 	}
@@ -250,6 +250,7 @@ void ADemoCharacter::Internal_StopSound(EAudioType InAudioType)
 	}
 }
 
+// Authority
 void ADemoCharacter::PlayDefeatSound()
 {
 	if (!DemoCharacterGlobalConfig || DemoCharacterGlobalConfig->DefeatSounds.IsEmpty())
@@ -264,6 +265,7 @@ void ADemoCharacter::PlayDefeatSound()
 	}
 	else
 	{
+		// Standalone
 		GeneralAudioComponent->SetSound(DemoCharacterGlobalConfig->DefeatSounds[SoundIndex]);
 		GeneralAudioComponent->Play();
 	}
