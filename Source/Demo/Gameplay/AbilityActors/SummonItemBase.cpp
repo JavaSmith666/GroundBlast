@@ -82,7 +82,6 @@ void ASummonItemBase::CheckAndReplaceLocalPredictedActor()
 
 void ASummonItemBase::HiddenSelf()
 {
-	SetNetDormancy(DORM_DormantAll);
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 	SetActorTickEnabled(false);
