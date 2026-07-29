@@ -52,6 +52,10 @@ public:
 	FGameplayAttributeData MaxStrength;
 	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, MaxStrength)
 	
+	UPROPERTY(BlueprintReadOnly, Category = "Damage")
+	FGameplayAttributeData InComingDamage;
+	ATTRIBUTE_ACCESSORS(UBaseAttributeSet, InComingDamage)
+	
 protected:
 	UFUNCTION()
 	void OnRep_HP(FGameplayAttributeData& RepData);
