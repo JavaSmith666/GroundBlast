@@ -12,7 +12,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameOver, bool, bVictory);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNotifyCountDownLeftTime, int32, CountDownLeftTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentAICountChanged, int32, CurrentAICount);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentDefeatCountChanged, int32, CurrentDefeatCount);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentRoundIndexChanged, int32, CurrentDefeatCount);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCurrentRoundIndexChanged, int32, CurrentRoundIndex);
 
 /**
  * 

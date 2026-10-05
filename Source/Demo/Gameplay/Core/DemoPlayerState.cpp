@@ -3,10 +3,12 @@
 
 #include "Gameplay/Core/DemoPlayerState.h"
 
+#include "DemoGameInstance.h"
 #include "DemoGameMode.h"
 #include "DemoGameState.h"
 #include "DemoPlayerController.h"
 #include "Gameplay/Character/DemoCharacter.h"
+#include "Gameplay/MVVM/GameStateViewModel.h"
 #include "Net/UnrealNetwork.h"
 
 void ADemoPlayerState::BeginPlay()
@@ -61,6 +63,14 @@ void ADemoPlayerState::OnEnemyDefeated()
 		{
 			DemoGameState->OnCurrentDefeatCountChanged.Broadcast(DefeatCount);
 		}
+		
+		if (UDemoGameInstance* GI = Cast<UDemoGameInstance>(GetGameInstance()))
+		{
+			if (UGameStateViewModel* ViewModel = GI->GetGlobalGameStateViewModel())
+			{
+				ViewModel->SetCurrentDefeatCount(DefeatCount);
+			}
+		}
 	}
 }
 
@@ -75,5 +85,13 @@ void ADemoPlayerState::OnRep_DefeatCount()
 	if (ADemoGameState* DemoGameState = Cast<ADemoGameState>(GetWorld()->GetGameState()))
 	{
 		DemoGameState->OnCurrentDefeatCountChanged.Broadcast(DefeatCount);
+	}
+	
+	if (UDemoGameInstance* GI = Cast<UDemoGameInstance>(GetGameInstance()))
+	{
+		if (UGameStateViewModel* ViewModel = GI->GetGlobalGameStateViewModel())
+		{
+			ViewModel->SetCurrentDefeatCount(DefeatCount);
+		}
 	}
 }

@@ -22,12 +22,22 @@ public class Demo : ModuleRules
 			"GameplayTasks",
 			"DeveloperSettings",
 			"UMG",
+			"ModelViewViewModel",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"AIModule"
 		});
+		
+		#if WITH_EDITOR
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+		    "ModelViewViewModelEditor",
+		    "ModelViewViewModelDebugger",
+		    "ModelViewViewModelDebuggerEditor"
+		});
+		#endif
 		
 		PublicIncludePaths.AddRange(new string[] {
 			"Demo",
